@@ -3,7 +3,8 @@ services:
     name: pulseup-api
     runtime: docker
     rootDir: PulseUp-Backend/PulseUp2026
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./PulseUp-Backend/PulseUp2026/Dockerfile
+    dockerContext: ./PulseUp-Backend/PulseUp2026
     healthCheckPath: /api/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
