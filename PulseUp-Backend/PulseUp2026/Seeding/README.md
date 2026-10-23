@@ -1,6 +1,6 @@
-# PulseUp local clean-seed workflow
+# PulseUp local and deployed seed workflow
 
-This workflow is for a local MySQL database only. It never requires a public admin-registration endpoint. Hibernate uses `update` locally to create tables after the database reset.
+This workflow supports local MySQL and the deployed Render/TiDB HTTPS API. The reset SQL is for local MySQL only and must never be run against TiDB production.
 
 ## Exact IntelliJ IDEA sequence
 
@@ -52,3 +52,25 @@ The synchronized catalog and HTTP seed use administrator phone `0600000001` and 
 `application.properties` reads `PULSEUP_DB_URL`, `PULSEUP_DB_USERNAME`, and `PULSEUP_DB_PASSWORD`; the username defaults to `root` and the password defaults to empty. `spring.jpa.open-in-view` is disabled. The JWT secret must be standard Base64 containing at least 32 decoded bytes. The application keeps HS256 signing and checks issuer, timestamps, active account state, and token version on every authenticated API request.
 
 Staff registration returns `201 Created` with a safe staff profile containing `userId`, name, contact, assignment, specialization, and availability fields. It never returns a staff JWT or password. The seed captures generated IDs directly from these creation responses and retains the ADMIN-protected staff-list request as profile verification. Registration is intentionally not idempotent; repeat this workflow only after a deliberate clean local reset.
+
+## HTTPS seeding to Render and TiDB
+
+The tracked `http-client.env.json` defines:
+
+```json
+"deployed": {
+  "baseUrl": "https://deployed-pulseup.onrender.com"
+}
+```
+
+To seed the deployed database from IntelliJ:
+
+1. Confirm `https://deployed-pulseup.onrender.com/api/health` returns `{"status":"UP"}`.
+2. In ignored `http-client.private.env.json`, replace the `deployed.adminEmail` and `deployed.adminPassword` placeholders with the exact administrator credentials created by Render bootstrap. Keep `deployed.staffPassword` private.
+3. Select the `deployed` HTTP Client environment.
+4. Run request 1 in `seed-pulseup.http` and confirm the admin-login test passes.
+5. Run request 7 and verify the deployed staff list is empty before creating records. If staff already exists, stop rather than running duplicate registrations.
+6. For an empty deployment, run requests 2-6, then 7, then 8-15 in order.
+7. Never run `reset-database.sql` against the deployed TiDB database.
+
+The deployed seed uses the same five staff identities, departments, positions, phone numbers, specializations, and slot templates as the local seed. Only the API base URL and administrator credentials differ.

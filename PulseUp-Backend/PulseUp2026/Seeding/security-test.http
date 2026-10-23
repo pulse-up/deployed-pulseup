@@ -1,5 +1,4 @@
-# Select the `local` environment. This file never contains plaintext passwords.
-@baseUrl = http://localhost:8080
+# Select `local` or `deployed`. Passwords stay in the ignored private environment.
 
 ### 1. Login as the bootstrapped admin and capture the JWT
 POST {{baseUrl}}/api/auth/login
@@ -7,7 +6,7 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "email": "pulseadmin@cput.ac.za",
+  "email": "{{adminEmail}}",
   "password": "{{adminPassword}}"
 }
 

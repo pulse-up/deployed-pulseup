@@ -1,7 +1,8 @@
-# Select the `local` environment before running this file from top to bottom.
-# API URL is defined here as a fallback. Passwords stay in the ignored
-# http-client.private.env.json file and JWTs are captured at runtime.
-@baseUrl = http://localhost:8080
+# Select `local` for local MySQL or `deployed` for the Render/TiDB HTTPS API.
+# baseUrl and passwords come from IntelliJ HTTP environments. Passwords stay
+# in ignored http-client.private.env.json; JWTs are captured at runtime.
+# Production registration is not idempotent: verify the deployed database is
+# empty before running steps 2-12.
 #
 # ADMIN BOOTSTRAP RECORD
 # Created once by AdminBootstrap when Spring Boot starts with
@@ -29,7 +30,7 @@ Content-Type: application/json
 Accept: application/json
 
 {
-  "email": "pulseadmin@cput.ac.za",
+  "email": "{{adminEmail}}",
   "password": "{{adminPassword}}"
 }
 
