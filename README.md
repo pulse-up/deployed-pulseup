@@ -225,6 +225,8 @@ Forgot-password recovery currently verifies registered account details directly.
 │       ├── Seeding/                  Local seed and security checks
 │       ├── Dockerfile                Render-ready Java 21 image
 │       └── pom.xml
+├── Dockerfile                        Render-compatible root build entry
+├── .dockerignore                     Root Docker build exclusions
 ├── render.yaml                       Render Blueprint
 └── DEPLOYMENT.md                     TiDB, Render, and Vercel guide
 ```
@@ -361,6 +363,7 @@ The repository is configured for:
 Vercel frontend → Render API → TiDB Cloud
 ```
 
+- The root `Dockerfile` builds the Spring Boot project from the monorepo root for Render compatibility.
 - `frontend/vercel.json` configures the Vite build and BrowserRouter fallback.
 - `render.yaml` configures the Dockerized Spring Boot web service.
 - `/api/health` verifies API and database readiness.

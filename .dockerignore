@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+_publish
+semantic-review
+frontend
+**/.idea
+**/node_modules
+**/dist
+**/target
+**/.env
+**/.env.*
+**/http-client.private.env.json
+**/*.log

@@ -76,7 +76,7 @@ Save the output in Render as `PULSEUP_JWT_SECRET`. Never add it to Git, Vercel, 
 
 ## 4. Deploy the Spring Boot API to Render
 
-The root `render.yaml` defines a Docker web service. Both `dockerfilePath` and `dockerContext` use repository-root-relative backend paths, as required by Render for monorepos. The Docker image compiles with Java 21 and runs as a non-root user. `/api/health` verifies both the API and database connection without exposing database details.
+The root `render.yaml` defines a Docker web service using the repository-root `Dockerfile` and build context. The root Dockerfile copies and builds `PulseUp-Backend/PulseUp2026`, which works for both Blueprint and default Render Docker settings. `/api/health` verifies both the API and database connection without exposing database details.
 
 1. In Render, choose **New > Blueprint**.
 2. Connect `pulse-up/deployed-pulseup`.
