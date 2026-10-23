@@ -1,6 +1,6 @@
 # Select `local` for local MySQL or `deployed` for the Render/TiDB HTTPS API.
-# baseUrl and passwords come from IntelliJ HTTP environments. Passwords stay
-# in ignored http-client.private.env.json; JWTs are captured at runtime.
+# The environment files are stored beside this request so IntelliJ can discover them.
+# Use Run with Environment and choose `deployed`; do not use the plain Run action.
 # Production registration is not idempotent: verify the deployed database is
 # empty before running steps 2-12.
 #
