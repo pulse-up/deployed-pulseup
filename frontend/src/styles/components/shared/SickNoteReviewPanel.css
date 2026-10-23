@@ -1,0 +1,47 @@
+.sick-note-review { min-width: 0; }
+.sick-note-review__heading h2 { margin: 3px 0 7px; color: #102a43; font-size: 1.45rem; }
+.sick-note-review__heading > p:last-child { margin: 0 0 18px; color: #667085; }
+.sick-note-review__message { width: 100%; }
+.sick-note-review__groups { display: grid; gap: 22px; }
+.sick-note-review__groups h3 { margin: 0 0 10px; color: #29445c; font-size: 1rem; }
+.sick-note-review__list { display: grid; gap: 11px; }
+.sick-note-review-card { min-width: 0; border: 1px solid #dce6f1; border-radius: 14px; padding: 16px; background: #fbfdff; }
+.sick-note-review-card__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.sick-note-review-card__heading > div { display: grid; min-width: 0; gap: 4px; }
+.sick-note-review-card__heading strong { color: #102a43; }
+.sick-note-review-card__heading span:not(.sick-note-status) { overflow-wrap: anywhere; color: #667085; font-size: 0.75rem; }
+.sick-note-review-card__details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 13px; }
+.sick-note-review-card__details p { display: grid; gap: 4px; margin: 0; border-radius: 9px; padding: 9px; background: #f1f7fb; }
+.sick-note-review-card__details span { color: #587590; font-size: 0.61rem; font-weight: 850; text-transform: uppercase; }
+.sick-note-review-card__details strong { overflow-wrap: anywhere; color: #29445c; font-size: 0.76rem; }
+.sick-note-review-card__reason { margin: 11px 0 0; overflow-wrap: anywhere; color: #52667d; font-size: 0.79rem; line-height: 1.55; }
+.sick-note-review-card__actions { display: grid; gap: 9px; margin-top: 13px; border-top: 1px solid #e2edf8; padding-top: 13px; }
+.sick-note-review-card__actions label { min-width: 0; }
+.sick-note-review-card__actions div { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 480px) { .sick-note-review-card__heading { flex-direction: column; } .sick-note-review-card__details { grid-template-columns: 1fr; } .sick-note-review-card__actions button { flex: 1; } }
+
+.sick-note-review-card__referral-request,
+.sick-note-review-card__issued,
+.sick-note-review-card__admin-note { margin: 11px 0 0; border-radius: 9px; padding: 10px 11px; }
+.sick-note-review-card__referral-request { border: 1px solid #bcd9eb; background: #eef8fc; }
+.sick-note-review-card__referral-request strong { color: #124f75; font-size: 0.72rem; }
+.sick-note-review-card__referral-request p { margin: 4px 0; color: #365b72; font-size: 0.68rem; line-height: 1.5; }
+.sick-note-review-card__referral-request small { color: #607687; font-size: 0.58rem; }
+.sick-note-review-card__issued { display: grid; gap: 3px; color: #185b36; background: #eaf8ef; }
+.sick-note-review-card__issued strong { font-size: 0.72rem; }
+.sick-note-review-card__issued span { font-size: 0.62rem; }
+.sick-note-review-card__admin-note { color: #5f556f; background: #f4f0f8; font-size: 0.65rem; }
+.sick-note-referral-fields,
+.sick-note-signature-fields { display: grid; gap: 9px; margin: 0; border: 1px solid #d9e5ed; border-radius: 10px; padding: 11px; }
+.sick-note-referral-fields legend,
+.sick-note-signature-fields legend { padding: 0 6px; color: #173f60; font-size: 0.7rem; font-weight: 850; }
+.sick-note-referral-fields > p { margin: 0; color: #697b8a; font-size: 0.61rem; line-height: 1.45; }
+.sick-note-referral-fields > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sick-note-referral-fields label,
+.sick-note-signature-fields label { display: grid; gap: 5px; color: #435d71; font-size: 0.64rem; font-weight: 750; }
+.sick-note-referral-fields input,
+.sick-note-signature-fields input { min-height: 39px; border: 1px solid #ccdce7; border-radius: 7px; padding: 8px 9px; background: #fff; font: inherit; }
+.sick-note-signature-confirmation { display: flex !important; align-items: flex-start; grid-template-columns: none !important; flex-direction: row; gap: 8px !important; border-radius: 8px; padding: 9px; background: #f4f8fb; }
+.sick-note-signature-confirmation input { flex: 0 0 auto; width: 17px; min-height: 17px; height: 17px; margin-top: 1px; }
+.sick-note-signature-confirmation span { font-size: 0.62rem; line-height: 1.45; }
+@media (max-width: 600px) { .sick-note-referral-fields > div { grid-template-columns: 1fr; } }

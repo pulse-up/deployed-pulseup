@@ -1,0 +1,122 @@
+{
+  "$schema": "https://example.invalid/pulseup-seed-catalog.schema.json",
+  "description": "Authoritative local clean-seed catalog. Run seed-pulseup.http to create these records through the API.",
+  "admin": {
+    "email": "pulseadmin@cput.ac.za",
+    "passwordSource": "adminPassword",
+    "firstName": "Tiyani",
+    "lastName": "Ngwana",
+    "phoneNumber": "0600000001",
+    "adminNumber": "ADM-LOCAL-001",
+    "department": "System Administration"
+  },
+  "staff": [
+    {
+      "reference": "generalConsultations",
+      "email": "230126634@cput.ac.za",
+      "passwordSource": "staffPassword",
+      "firstName": "Inga",
+      "lastName": "Plati",
+      "phoneNumber": "0608920131",
+      "staffNumber": "230126634",
+      "department": "General Consultations",
+      "position": "General Practitioner",
+      "specialization": "Primary health care"
+    },
+    {
+      "reference": "reproductiveHealth",
+      "email": "240443608@cput.ac.za",
+      "passwordSource": "staffPassword",
+      "firstName": "Lindokuhle",
+      "lastName": "Nanto",
+      "phoneNumber": "0738900789",
+      "staffNumber": "240443608",
+      "department": "Reproductive Health",
+      "position": "Reproductive Health Nurse",
+      "specialization": "Sexual and reproductive health"
+    },
+    {
+      "reference": "hivVct",
+      "email": "218123191@cput.ac.za",
+      "passwordSource": "staffPassword",
+      "firstName": "Siphokuhle",
+      "lastName": "Nyana",
+      "phoneNumber": "0823750013",
+      "staffNumber": "218123191",
+      "department": "HIV VCT",
+      "position": "HIV Counsellor",
+      "specialization": "HIV counselling and testing"
+    },
+    {
+      "reference": "tbDots",
+      "email": "222527269@cput.ac.za",
+      "passwordSource": "staffPassword",
+      "firstName": "Matinisa",
+      "lastName": "Lubisi",
+      "phoneNumber": "0728960301",
+      "staffNumber": "222527269",
+      "department": "TB DOTS",
+      "position": "TB Nurse",
+      "specialization": "Tuberculosis treatment and adherence"
+    },
+    {
+      "reference": "woundDressings",
+      "email": "230541844@cput.ac.za",
+      "passwordSource": "staffPassword",
+      "firstName": "Snalo",
+      "lastName": "Noni",
+      "phoneNumber": "0669003415",
+      "staffNumber": "230541844",
+      "department": "Wound Dressings",
+      "position": "Wound Care Nurse",
+      "specialization": "Acute and chronic wound care"
+    }
+  ],
+  "timeSlots": [
+    {
+      "staffReference": "generalConsultations",
+      "slotDateSource": "seedSlotDate (today plus 30 days)",
+      "startTime": "09:00",
+      "endTime": "09:20",
+      "appointmentType": "General Consultations",
+      "roomNumber": "Unit A1",
+      "estimatedDurationMinutes": 20
+    },
+    {
+      "staffReference": "reproductiveHealth",
+      "slotDateSource": "seedSlotDate (today plus 30 days)",
+      "startTime": "09:00",
+      "endTime": "09:30",
+      "appointmentType": "Reproductive Health",
+      "roomNumber": "Unit B1",
+      "estimatedDurationMinutes": 30
+    },
+    {
+      "staffReference": "hivVct",
+      "slotDateSource": "seedSlotDate (today plus 30 days)",
+      "startTime": "10:00",
+      "endTime": "10:30",
+      "appointmentType": "HIV VCT",
+      "roomNumber": "Unit C1",
+      "estimatedDurationMinutes": 30
+    },
+    {
+      "staffReference": "tbDots",
+      "slotDateSource": "seedSlotDate (today plus 30 days)",
+      "startTime": "11:00",
+      "endTime": "11:15",
+      "appointmentType": "TB DOTS",
+      "roomNumber": "Unit D1",
+      "estimatedDurationMinutes": 15
+    },
+    {
+      "staffReference": "woundDressings",
+      "slotDateSource": "seedSlotDate (today plus 30 days)",
+      "startTime": "12:00",
+      "endTime": "12:30",
+      "appointmentType": "Wound Dressings",
+      "roomNumber": "Unit E1",
+      "estimatedDurationMinutes": 30
+    }
+  ]
+}

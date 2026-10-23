@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: pulseup-api
+    runtime: docker
+    rootDir: PulseUp-Backend/PulseUp2026
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: PULSEUP_DB_URL
+        sync: false
+      - key: PULSEUP_DB_USERNAME
+        sync: false
+      - key: PULSEUP_DB_PASSWORD
+        sync: false
+      - key: PULSEUP_JWT_SECRET
+        sync: false
+      - key: PULSEUP_FRONTEND_ORIGINS
+        sync: false
+      - key: PULSEUP_DDL_AUTO
+        value: update
+      - key: PULSEUP_SHOW_SQL
+        value: "false"
+      - key: PULSEUP_DB_POOL_SIZE
+        value: "5"
+      - key: PULSEUP_BOOTSTRAP_ADMIN_ENABLED
+        value: "false"

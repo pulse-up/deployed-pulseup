@@ -1,0 +1,17 @@
+.idea/
+**/.idea/
+**/target/
+**/http-client.private.env.json
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules/
+**/dist/
+**/*.jks
+**/*.p12
+**/*.pem
+**/secrets/
+/semantic-review/
+/package-lock.json
+*.log
+/_publish/

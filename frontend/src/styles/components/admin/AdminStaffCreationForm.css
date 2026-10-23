@@ -1,0 +1,19 @@
+.admin-staff-create { width: min(100%, 920px); }
+.admin-staff-create > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.admin-staff-create > header h2 { margin: 3px 0 4px; font-size: 1rem; }
+.admin-staff-create > header p:last-child { max-width: 570px; margin: 0; color: #69798a; font-size: 0.67rem; }
+.admin-staff-create > header > span { flex: none; border-radius: 999px; padding: 6px 9px; color: #0c345a; background: #e8f2fa; font-size: 0.55rem; font-weight: 850; letter-spacing: 0.08em; }
+.admin-staff-create__feedback { margin: 0 0 12px; border-radius: 7px; padding: 9px 11px; font-size: 0.68rem; font-weight: 700; }
+.admin-staff-create__feedback.is-success { color: #17633b; background: #eaf8ef; }
+.admin-staff-create__feedback.is-error { color: #9d2929; background: #fff0f0; }
+.admin-staff-create__form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.admin-staff-create__form label { display: grid; align-content: start; gap: 5px; color: #35485b; font-size: 0.63rem; font-weight: 750; }
+.admin-staff-create__form input,
+.admin-staff-create__form select { width: 100%; min-width: 0; min-height: 38px; border: 1px solid #d4dee7; border-radius: 6px; padding: 8px 10px; color: #15283c; background: #f8fafc; font: inherit; font-size: 0.7rem; }
+.admin-staff-create__form input:focus,
+.admin-staff-create__form select:focus { border-color: #3a79ad; outline: 3px solid rgba(58, 121, 173, 0.13); }
+.admin-staff-create__specialization { grid-column: span 2; }
+.admin-staff-create__actions { display: flex; align-items: end; justify-content: flex-end; }
+.admin-staff-create__actions button { width: 100%; min-height: 38px; border-radius: 6px; font-size: 0.68rem; }
+@media (max-width: 800px) { .admin-staff-create__form { grid-template-columns: repeat(2, minmax(0, 1fr)); } .admin-staff-create__specialization { grid-column: auto; } }
+@media (max-width: 540px) { .admin-staff-create > header { flex-direction: column; } .admin-staff-create__form { grid-template-columns: 1fr; } }

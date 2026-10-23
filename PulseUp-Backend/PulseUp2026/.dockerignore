@@ -1,0 +1,10 @@
+.git
+.gitignore
+.idea
+*.iml
+target
+Seeding
+http-client*.json
+*.log
+.env
+.env.*

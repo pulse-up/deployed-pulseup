@@ -1,0 +1,33 @@
+# Select the `local` environment. This file never contains plaintext passwords.
+@baseUrl = http://localhost:8080
+
+### 1. Login as the bootstrapped admin and capture the JWT
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "pulseadmin@cput.ac.za",
+  "password": "{{adminPassword}}"
+}
+
+> {% client.global.set("adminToken", response.body.token); %}
+
+### 2. Protected request without a token (expected: 401)
+GET {{baseUrl}}/api/admins
+Accept: application/json
+
+### 3. Protected request with the admin token (expected: 200)
+GET {{baseUrl}}/api/admins
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+### 4. View all appointments as admin
+GET {{baseUrl}}/api/appointments
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+### 5. View all time slots as admin
+GET {{baseUrl}}/api/time-slots
+Accept: application/json
+Authorization: Bearer {{adminToken}}

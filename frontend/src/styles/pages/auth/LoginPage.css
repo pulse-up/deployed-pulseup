@@ -1,0 +1,225 @@
+/* Compact sign-in layout. Shared colours and field styling come from AuthBackground.css. */
+
+.pulse-login-page {
+  display: grid;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  place-items: center;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.pulse-login-page .pulse-login-card {
+  width: min(400px, 100%);
+  max-width: 400px;
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  border-radius: 18px;
+}
+
+.pulse-login-page .pulse-responsive-header--auth .pulse-responsive-header__inner {
+  min-height: 52px;
+  padding-inline: 20px;
+}
+
+.pulse-login-content {
+  padding: 18px 24px 22px;
+}
+
+.pulse-login-heading {
+  margin-bottom: 15px;
+}
+
+.pulse-login-heading .pulse-auth-title {
+  font-size: clamp(1.55rem, 4vw, 1.9rem);
+}
+
+.pulse-login-heading .pulse-auth-lead {
+  margin-top: 7px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.pulse-login-form {
+  display: grid;
+  gap: 10px;
+}
+
+.pulse-login-field {
+  gap: 5px;
+}
+
+.pulse-login-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pulse-login-input-wrapper > i {
+  position: absolute;
+  left: 12px;
+  z-index: 1;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.72);
+  pointer-events: none;
+}
+
+.pulse-login-input-wrapper svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pulse-login-input-wrapper input {
+  min-height: 42px;
+  padding: 9px 42px 9px 38px;
+  border-radius: 10px;
+}
+
+.pulse-login-password-toggle {
+  position: absolute;
+  right: 6px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.78);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.pulse-login-password-toggle:hover:not(:disabled) {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.pulse-login-password-toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pulse-login-page .pulse-auth-submit {
+  min-height: 42px;
+  padding: 9px 16px;
+  border-radius: 10px;
+}
+
+.pulse-login-page .pulse-auth-message {
+  padding: 8px 10px;
+  font-size: 0.73rem;
+  line-height: 1.4;
+}
+
+.pulse-login-divider {
+  display: flex;
+  align-items: center;
+  margin: 14px 0 10px;
+  gap: 10px;
+}
+
+.pulse-login-divider::before,
+.pulse-login-divider::after {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.24);
+  content: '';
+}
+
+.pulse-login-divider span {
+  color: var(--auth-text-soft);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pulse-login-register {
+  display: grid;
+  min-height: 40px;
+  place-items: center;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-align: center;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.pulse-login-register:hover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.pulse-login-support {
+  margin: 10px 0 0;
+  color: var(--auth-text-faint);
+  font-size: 0.68rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+@media (max-height: 620px) {
+  .pulse-login-page .pulse-responsive-header--auth .pulse-responsive-header__inner {
+    min-height: 46px;
+  }
+
+  .pulse-login-content {
+    padding-block: 12px 14px;
+  }
+
+  .pulse-login-heading {
+    margin-bottom: 10px;
+  }
+
+  .pulse-login-heading .pulse-auth-lead,
+  .pulse-login-support {
+    display: none;
+  }
+
+  .pulse-login-divider {
+    margin-block: 10px 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .pulse-login-page {
+    padding: 8px;
+  }
+
+  .pulse-login-page .pulse-login-card {
+    max-height: calc(100dvh - 16px);
+  }
+
+  .pulse-login-content {
+    padding-inline: 18px;
+  }
+}
+
+.pulse-forgot-password { justify-self: end; border: 0; padding: 2px 0; color: #9ee9e4; background: transparent; font: inherit; font-size: 0.69rem; font-weight: 750; cursor: pointer; }
+.pulse-forgot-password:hover { color: #fff; text-decoration: underline; }
+.pulse-login-page .pulse-auth-message.is-success { border-color: rgba(120, 225, 181, 0.35); color: #d9ffeb; background: rgba(20, 130, 82, 0.28); }
+.pulse-login-card.is-recovery { width: min(620px, 100%); max-width: 620px; overflow-y: auto; }
+.pulse-recovery-form { display: grid; gap: 11px; }
+.pulse-recovery-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.pulse-recovery-form .pulse-auth-field { display: grid; min-width: 0; gap: 5px; }
+.pulse-recovery-form .pulse-auth-field input { width: 100%; min-width: 0; min-height: 40px; border-radius: 9px; padding: 8px 10px; }
+.pulse-recovery-show { display: flex; align-items: center; gap: 7px; color: var(--auth-text-soft); font-size: 0.66rem; cursor: pointer; }
+.pulse-recovery-show input { width: 16px; height: 16px; accent-color: #27c0b1; }
+.pulse-recovery-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.pulse-recovery-actions > button:first-child { min-height: 40px; border: 1px solid rgba(255,255,255,.38); border-radius: 9px; padding: 8px 13px; color: #fff; background: transparent; font: inherit; font-size: .7rem; font-weight: 750; cursor: pointer; }
+.pulse-recovery-actions .pulse-auth-submit { width: auto; min-width: 150px; }
+@media (max-width: 560px) { .pulse-login-card.is-recovery { max-height: calc(100dvh - 16px); } .pulse-recovery-grid { grid-template-columns: 1fr; } .pulse-recovery-actions { align-items: stretch; flex-direction: column-reverse; } .pulse-recovery-actions .pulse-auth-submit { width: 100%; } }

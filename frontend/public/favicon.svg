@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PulseUp PU mark">
+  <rect width="64" height="64" rx="14" fill="#063b5c"/>
+  <path fill="#fff" d="M11 14h20c9 0 15 5 15 14S40 42 31 42h-9v9H11V14Zm11 9v10h8c3 0 5-2 5-5s-2-5-5-5h-8Z"/>
+  <path fill="#20b8ad" d="M43 35h9v16h-9zM39 42h17v9H39z"/>
+</svg>

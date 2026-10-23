@@ -1,0 +1,55 @@
+.profile-image-uploader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  border: 1px solid #dfe6ed;
+  border-radius: 10px;
+  padding: 13px;
+  background: #f8fafc;
+}
+
+.profile-image-uploader__preview {
+  display: grid;
+  flex: 0 0 72px;
+  height: 72px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #0c345a;
+  font-size: 1rem;
+  font-weight: 850;
+}
+
+.profile-image-uploader__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-image-uploader__content { min-width: 0; }
+.profile-image-uploader__content > strong { color: #132238; font-size: 0.8rem; }
+.profile-image-uploader__content p { max-width: 560px; margin: 3px 0 9px; color: #687789; font-size: 0.66rem; line-height: 1.5; }
+.profile-image-uploader__content small { display: block; margin-top: 7px; color: #36536c; font-size: 0.62rem; }
+.profile-image-uploader__actions { display: flex; flex-wrap: wrap; gap: 7px; }
+.profile-image-uploader__actions button {
+  min-height: 36px;
+  border: 1px solid #0c345a;
+  border-radius: 6px;
+  padding: 7px 11px;
+  color: #ffffff;
+  background: #0c345a;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.profile-image-uploader__actions button.is-remove { color: #9f2d2d; border-color: #e1b9b9; background: #ffffff; }
+.profile-image-uploader__actions button:disabled { cursor: wait; opacity: 0.65; }
+.profile-image-uploader__actions button:focus-visible { outline: 3px solid rgba(23, 109, 243, 0.25); outline-offset: 2px; }
+
+@media (max-width: 520px) {
+  .profile-image-uploader { align-items: flex-start; }
+  .profile-image-uploader__preview { flex-basis: 58px; height: 58px; }
+}

@@ -1,0 +1,170 @@
+/* Student registration layout. Shared colours and fields come from AuthBackground.css. */
+
+.pulse-register-page {
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  overflow-x: hidden;
+}
+
+.pulse-register-card {
+  width: min(800px, 100%);
+  max-height: calc(100dvh - 36px);
+}
+
+.pulse-register-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 30px 26px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+}
+
+.pulse-register-heading {
+  margin-bottom: 17px;
+}
+
+.pulse-register-heading .pulse-auth-title {
+  font-size: clamp(1.7rem, 4vw, 2.15rem);
+}
+
+.pulse-register-form {
+  display: grid;
+  gap: 12px;
+}
+
+.pulse-register-section {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.pulse-register-section legend {
+  padding: 0 7px;
+  color: var(--auth-accent);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pulse-register-section-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 11px 14px;
+}
+
+.pulse-register-section-grid > .pulse-auth-field {
+  width: 100%;
+  align-self: start;
+  align-content: start;
+}
+
+.pulse-register-wide-field {
+  grid-column: 1 / -1;
+}
+
+.pulse-register-password {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.pulse-register-password input {
+  display: block;
+  width: 100%;
+  height: 46px;
+  min-height: 46px;
+  padding-right: 46px;
+}
+
+.pulse-register-eye {
+  position: absolute;
+  right: 7px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.78);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.pulse-register-eye:hover:not(:disabled) {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.pulse-register-eye svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pulse-register-password.is-match input {
+  border-color: var(--auth-success);
+  box-shadow: 0 0 0 3px rgba(134, 239, 184, 0.2);
+}
+
+.pulse-register-password.is-mismatch input {
+  border-color: #ff9d9d;
+  box-shadow: 0 0 0 3px rgba(255, 157, 157, 0.2);
+}
+
+.pulse-register-match {
+  min-height: 1.1em;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.pulse-register-match.is-match {
+  color: var(--auth-success);
+}
+
+.pulse-register-match.is-mismatch {
+  color: var(--auth-danger);
+}
+
+.pulse-register-footer {
+  margin: 15px 0 0;
+  color: var(--auth-text-soft);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .pulse-register-page {
+    padding: 8px;
+  }
+
+  .pulse-register-card {
+    max-height: calc(100dvh - 16px);
+  }
+
+  .pulse-register-content {
+    padding: 18px 14px 22px;
+  }
+
+  .pulse-register-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pulse-register-wide-field {
+    grid-column: auto;
+  }
+}

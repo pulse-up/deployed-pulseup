@@ -1,0 +1,312 @@
+# Select the `local` environment before running this file from top to bottom.
+# API URL is defined here as a fallback. Passwords stay in the ignored
+# http-client.private.env.json file and JWTs are captured at runtime.
+@baseUrl = http://localhost:8080
+#
+# ADMIN BOOTSTRAP RECORD
+# Created once by AdminBootstrap when Spring Boot starts with
+# PULSEUP_BOOTSTRAP_ADMIN_ENABLED=true.
+# Name: Tiyani Ngwana
+# Email: pulseadmin@cput.ac.za
+# Phone: 0600000001 (local seed placeholder)
+# Admin number: ADM-LOCAL-001
+# Department: System Administration
+# Password source: PULSEUP_BOOTSTRAP_ADMIN_PASSWORD in the IntelliJ Run
+# Configuration; use the same value as {{adminPassword}} in the ignored
+# http-client.private.env.json file. Never commit the plaintext password.
+
+### 1. Sign in as the bootstrapped administrator and generate the slot date
+< {%
+  const slotDate = new Date();
+  slotDate.setDate(slotDate.getDate() + 30);
+  const year = slotDate.getFullYear();
+  const month = String(slotDate.getMonth() + 1).padStart(2, "0");
+  const day = String(slotDate.getDate()).padStart(2, "0");
+  client.global.set("seedSlotDate", `${year}-${month}-${day}`);
+%}
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "pulseadmin@cput.ac.za",
+  "password": "{{adminPassword}}"
+}
+
+> {%
+  client.test("Admin login returns a JWT", function () {
+    client.assert(response.status === 200, `Expected 200, received ${response.status}`);
+    client.assert(Boolean(response.body.token), "Login response did not include a token");
+  });
+  client.global.set("adminToken", response.body.token);
+%}
+
+### 2. Register General Consultations staff
+POST {{baseUrl}}/api/auth/register/staff
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "230126634@cput.ac.za",
+  "password": "{{staffPassword}}",
+  "firstName": "Inga",
+  "lastName": "Plati",
+  "phoneNumber": "0608920131",
+  "staffNumber": "230126634",
+  "department": "General Consultations",
+  "position": "General Practitioner",
+  "specialization": "Primary health care"
+}
+
+> {%
+  client.test("Inga profile fields were captured", function () {
+    client.assert(response.status === 201, `Expected 201, received ${response.status}`);
+    client.assert(response.body.phoneNumber === "0608920131", "Phone number mismatch");
+    client.assert(response.body.department === "General Consultations", "Department mismatch");
+    client.assert(response.body.position === "General Practitioner", "Position mismatch");
+    client.assert(response.body.specialization === "Primary health care", "Specialization mismatch");
+    client.assert(response.body.availabilityStatus === "AVAILABLE", "Availability mismatch");
+  });
+  client.global.set("generalConsultationsStaffId", response.body.userId);
+%}
+
+### 3. Register Reproductive Health staff
+POST {{baseUrl}}/api/auth/register/staff
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "240443608@cput.ac.za",
+  "password": "{{staffPassword}}",
+  "firstName": "Lindokuhle",
+  "lastName": "Nanto",
+  "phoneNumber": "0738900789",
+  "staffNumber": "240443608",
+  "department": "Reproductive Health",
+  "position": "Reproductive Health Nurse",
+  "specialization": "Sexual and reproductive health"
+}
+
+> {%
+  client.test("Lindokuhle profile fields were captured", function () {
+    client.assert(response.status === 201, `Expected 201, received ${response.status}`);
+    client.assert(response.body.phoneNumber === "0738900789", "Phone number mismatch");
+    client.assert(response.body.department === "Reproductive Health", "Department mismatch");
+    client.assert(response.body.position === "Reproductive Health Nurse", "Position mismatch");
+    client.assert(response.body.specialization === "Sexual and reproductive health", "Specialization mismatch");
+    client.assert(response.body.availabilityStatus === "AVAILABLE", "Availability mismatch");
+  });
+  client.global.set("reproductiveHealthStaffId", response.body.userId);
+%}
+
+### 4. Register HIV VCT staff
+POST {{baseUrl}}/api/auth/register/staff
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "218123191@cput.ac.za",
+  "password": "{{staffPassword}}",
+  "firstName": "Siphokuhle",
+  "lastName": "Nyana",
+  "phoneNumber": "0823750013",
+  "staffNumber": "218123191",
+  "department": "HIV VCT",
+  "position": "HIV Counsellor",
+  "specialization": "HIV counselling and testing"
+}
+
+> {%
+  client.test("Siphokuhle profile fields were captured", function () {
+    client.assert(response.status === 201, `Expected 201, received ${response.status}`);
+    client.assert(response.body.phoneNumber === "0823750013", "Phone number mismatch");
+    client.assert(response.body.department === "HIV VCT", "Department mismatch");
+    client.assert(response.body.position === "HIV Counsellor", "Position mismatch");
+    client.assert(response.body.specialization === "HIV counselling and testing", "Specialization mismatch");
+    client.assert(response.body.availabilityStatus === "AVAILABLE", "Availability mismatch");
+  });
+  client.global.set("hivVctStaffId", response.body.userId);
+%}
+
+### 5. Register TB DOTS staff
+POST {{baseUrl}}/api/auth/register/staff
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "222527269@cput.ac.za",
+  "password": "{{staffPassword}}",
+  "firstName": "Matinisa",
+  "lastName": "Lubisi",
+  "phoneNumber": "0728960301",
+  "staffNumber": "222527269",
+  "department": "TB DOTS",
+  "position": "TB Nurse",
+  "specialization": "Tuberculosis treatment and adherence"
+}
+
+> {%
+  client.test("Matinisa profile fields were captured", function () {
+    client.assert(response.status === 201, `Expected 201, received ${response.status}`);
+    client.assert(response.body.phoneNumber === "0728960301", "Phone number mismatch");
+    client.assert(response.body.department === "TB DOTS", "Department mismatch");
+    client.assert(response.body.position === "TB Nurse", "Position mismatch");
+    client.assert(response.body.specialization === "Tuberculosis treatment and adherence", "Specialization mismatch");
+    client.assert(response.body.availabilityStatus === "AVAILABLE", "Availability mismatch");
+  });
+  client.global.set("tbDotsStaffId", response.body.userId);
+%}
+
+### 6. Register Wound Dressings staff
+POST {{baseUrl}}/api/auth/register/staff
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "email": "230541844@cput.ac.za",
+  "password": "{{staffPassword}}",
+  "firstName": "Snalo",
+  "lastName": "Noni",
+  "phoneNumber": "0669003415",
+  "staffNumber": "230541844",
+  "department": "Wound Dressings",
+  "position": "Wound Care Nurse",
+  "specialization": "Acute and chronic wound care"
+}
+
+> {%
+  client.test("Snalo profile fields were captured", function () {
+    client.assert(response.status === 201, `Expected 201, received ${response.status}`);
+    client.assert(response.body.phoneNumber === "0669003415", "Phone number mismatch");
+    client.assert(response.body.department === "Wound Dressings", "Department mismatch");
+    client.assert(response.body.position === "Wound Care Nurse", "Position mismatch");
+    client.assert(response.body.specialization === "Acute and chronic wound care", "Specialization mismatch");
+    client.assert(response.body.availabilityStatus === "AVAILABLE", "Availability mismatch");
+  });
+  client.global.set("woundDressingsStaffId", response.body.userId);
+%}
+
+### 7. Verify all created staff records
+GET {{baseUrl}}/api/staff
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+> {%
+  client.test("All dashboard staff profiles are available", function () {
+    const expectedEmails = [
+      "230126634@cput.ac.za",
+      "240443608@cput.ac.za",
+      "218123191@cput.ac.za",
+      "222527269@cput.ac.za",
+      "230541844@cput.ac.za"
+    ];
+    expectedEmails.forEach((email) => {
+      const staff = response.body.find((item) => item.email === email);
+      client.assert(Boolean(staff), `Missing staff record: ${email}`);
+      client.assert(Boolean(staff.phoneNumber), `Missing phone number: ${email}`);
+      client.assert(Boolean(staff.department), `Missing department: ${email}`);
+      client.assert(Boolean(staff.position), `Missing position: ${email}`);
+      client.assert(Boolean(staff.specialization), `Missing specialization: ${email}`);
+    });
+  });
+%}
+
+### 8. Create General Consultations slot
+POST {{baseUrl}}/api/time-slots
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "staffId": {{generalConsultationsStaffId}},
+  "slotDate": "{{seedSlotDate}}",
+  "startTime": "09:00",
+  "endTime": "09:20",
+  "appointmentType": "General Consultations",
+  "roomNumber": "Unit A1",
+  "estimatedDurationMinutes": 20
+}
+
+### 9. Create Reproductive Health slot
+POST {{baseUrl}}/api/time-slots
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "staffId": {{reproductiveHealthStaffId}},
+  "slotDate": "{{seedSlotDate}}",
+  "startTime": "09:00",
+  "endTime": "09:30",
+  "appointmentType": "Reproductive Health",
+  "roomNumber": "Unit B1",
+  "estimatedDurationMinutes": 30
+}
+
+### 10. Create HIV VCT slot
+POST {{baseUrl}}/api/time-slots
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "staffId": {{hivVctStaffId}},
+  "slotDate": "{{seedSlotDate}}",
+  "startTime": "10:00",
+  "endTime": "10:30",
+  "appointmentType": "HIV VCT",
+  "roomNumber": "Unit C1",
+  "estimatedDurationMinutes": 30
+}
+
+### 11. Create TB DOTS slot
+POST {{baseUrl}}/api/time-slots
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "staffId": {{tbDotsStaffId}},
+  "slotDate": "{{seedSlotDate}}",
+  "startTime": "11:00",
+  "endTime": "11:15",
+  "appointmentType": "TB DOTS",
+  "roomNumber": "Unit D1",
+  "estimatedDurationMinutes": 15
+}
+
+### 12. Create Wound Dressings slot
+POST {{baseUrl}}/api/time-slots
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "staffId": {{woundDressingsStaffId}},
+  "slotDate": "{{seedSlotDate}}",
+  "startTime": "12:00",
+  "endTime": "12:30",
+  "appointmentType": "Wound Dressings",
+  "roomNumber": "Unit E1",
+  "estimatedDurationMinutes": 30
+}
+
+### 13. Verify seeded administrators
+GET {{baseUrl}}/api/admins
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+### 14. Verify seeded staff
+GET {{baseUrl}}/api/staff
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+### 15. Verify seeded time slots
+GET {{baseUrl}}/api/time-slots
+Accept: application/json
+Authorization: Bearer {{adminToken}}
