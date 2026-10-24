@@ -8,19 +8,18 @@ const LONG_WAIT_MS = 45000;
 const MINIMUM_SPLASH_MS = 1100;
 
 function getAttemptMessage(attempt, isLongWait) {
-  if (isLongWait) return 'The clinic service is taking longer than expected';
-  if (attempt === 1) return 'Contacting the secure clinic service';
-  if (attempt === 2) return 'Waking PulseUp services';
-  if (attempt === 3) return 'Connecting to the clinic database';
-  return 'Preparing your secure connection';
+  if (isLongWait) return 'The service is taking longer than expected';
+  if (attempt === 1) return 'Connecting to the service';
+  if (attempt === 2) return 'Waking the service';
+  if (attempt === 3) return 'Connecting to the database';
+  return 'Preparing the secure connection';
 }
 
 function StartupGate({ children }) {
   const [runKey, setRunKey] = useState(0);
   const [phase, setPhase] = useState('checking');
   const [progress, setProgress] = useState(10);
-  const [message, setMessage] = useState('Contacting the secure clinic service');
-  const [detail, setDetail] = useState('This usually takes only a moment.');
+  const [message, setMessage] = useState('Connecting to the service');
   const [isLongWait, setIsLongWait] = useState(false);
 
   useEffect(() => {
@@ -45,17 +44,10 @@ function StartupGate({ children }) {
       if (!active) return;
 
       attempt += 1;
-      const elapsed = Date.now() - startedAt;
-      const waitingLonger = elapsed >= LONG_WAIT_MS;
+      const waitingLonger = Date.now() - startedAt >= LONG_WAIT_MS;
 
       setIsLongWait(waitingLonger);
       setMessage(getAttemptMessage(attempt, waitingLonger));
-      setDetail(
-        waitingLonger
-          ? 'The service may still be waking from rest. We are checking automatically.'
-          : 'Checking the application and clinic database before you continue.',
-      );
-
       requestController = new AbortController();
 
       try {
@@ -68,8 +60,7 @@ function StartupGate({ children }) {
         if (isHealthy) {
           window.clearInterval(progressTimer);
           setProgress(100);
-          setMessage('PulseUp is ready');
-          setDetail('Opening your clinic experience securely.');
+          setMessage('Connection ready');
           setPhase('ready');
 
           const remainingSplashTime = Math.max(
@@ -91,10 +82,7 @@ function StartupGate({ children }) {
       const totalWait = Date.now() - startedAt;
       if (totalWait >= LONG_WAIT_MS) {
         setIsLongWait(true);
-        setMessage('The clinic service is taking longer than expected');
-        setDetail(
-          'The service may still be waking from rest. We are checking automatically.',
-        );
+        setMessage('The service is taking longer than expected');
       }
 
       const delay = RETRY_DELAYS_MS[
@@ -117,8 +105,7 @@ function StartupGate({ children }) {
   const restartCheck = () => {
     setPhase('checking');
     setProgress(10);
-    setMessage('Contacting the secure clinic service');
-    setDetail('This usually takes only a moment.');
+    setMessage('Connecting to the service');
     setIsLongWait(false);
     setRunKey((current) => current + 1);
   };
@@ -133,35 +120,22 @@ function StartupGate({ children }) {
       <div className="startup-gate__aurora startup-gate__aurora--two" />
       <div className="startup-gate__grid" />
 
-      <section className="startup-gate__content" aria-labelledby="startup-title">
-        <div className="startup-gate__visual" aria-hidden="true">
-          <span className="startup-gate__orbit startup-gate__orbit--outer">
-            <i />
-          </span>
-          <span className="startup-gate__orbit startup-gate__orbit--inner">
-            <i />
-          </span>
-          <span className="startup-gate__pulse startup-gate__pulse--one" />
-          <span className="startup-gate__pulse startup-gate__pulse--two" />
-          <span className="startup-gate__mark-shell">
-            <img src="/favicon.svg" alt="" className="startup-gate__mark" />
-          </span>
-          <svg className="startup-gate__heartbeat" viewBox="0 0 220 42">
-            <path d="M2 23h56l9-13 13 27 14-32 14 18h110" />
-          </svg>
+      <section className="startup-gate__content" aria-label="Website startup progress">
+        <div className="startup-gate__spinner" aria-hidden="true">
+          <span className="startup-gate__ring startup-gate__ring--outer"><i /></span>
+          <span className="startup-gate__ring startup-gate__ring--middle"><i /></span>
+          <span className="startup-gate__ring startup-gate__ring--inner" />
+          <span className="startup-gate__core" />
         </div>
 
-        <div className="startup-gate__wordmark" aria-label="PulseUp">
-          <span>PULSE</span><strong>UP</strong>
+        <div className="startup-gate__percentage" aria-hidden="true">
+          <strong>{roundedProgress}</strong><span>%</span>
         </div>
-        <p className="startup-gate__eyebrow">CPUT Campus Clinic</p>
-        <h1 id="startup-title">{message}</h1>
-        <p className="startup-gate__detail">{detail}</p>
 
         <div
           className="startup-gate__progress"
           role="progressbar"
-          aria-label="PulseUp service startup progress"
+          aria-label="Service startup progress"
           aria-valuemin="0"
           aria-valuemax="100"
           aria-valuenow={roundedProgress}
@@ -169,12 +143,8 @@ function StartupGate({ children }) {
           <span style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="startup-gate__status" aria-hidden="true">
-          <span className="startup-gate__status-dot" />
-          <span>{phase === 'ready' ? 'Connected' : `${roundedProgress}% ready`}</span>
-        </div>
         <p className="startup-gate__sr-status" role="status" aria-live="polite">
-          {phase === 'ready' ? 'PulseUp is connected and ready.' : message}
+          {message}
         </p>
 
         {isLongWait && phase !== 'ready' ? (
@@ -183,14 +153,10 @@ function StartupGate({ children }) {
             className="startup-gate__retry"
             onClick={restartCheck}
           >
-            Check again now
+            Check again
           </button>
         ) : null}
       </section>
-
-      <p className="startup-gate__security">
-        <span aria-hidden="true">✦</span> Secure health services connection
-      </p>
     </main>
   );
 }
