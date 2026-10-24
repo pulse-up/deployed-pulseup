@@ -5,9 +5,33 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PulseUp | CPUT Campus Clinic</title>
+    <style>
+      html, body { margin: 0; min-height: 100%; background: #f4fafb; }
+      .startup-first-paint { position: fixed; inset: 0; display: grid; place-items: center; min-height: 100vh; min-height: 100dvh; color: #032c49; background: radial-gradient(circle at 50% 38%, #fff 0 15%, transparent 48%), linear-gradient(145deg, #edf9f8, #f8fbfd 48%, #edf5fa); font-family: Arial, sans-serif; }
+      .startup-first-paint__content { text-align: center; animation: first-paint-enter .55s ease-out both; }
+      .startup-first-paint__mark { width: 76px; height: 76px; padding: 7px; border-radius: 25px; background: #fff; box-shadow: 0 20px 48px rgb(3 44 73 / 18%); animation: first-paint-float 2.4s ease-in-out infinite; }
+      .startup-first-paint__name { margin: 21px 0 8px; color: #064a7e; font-size: 2rem; font-weight: 900; letter-spacing: -.075em; }
+      .startup-first-paint__name strong { color: #16a6a1; }
+      .startup-first-paint__text { margin: 0; color: #647f91; font-size: .9rem; }
+      .startup-first-paint__bar { width: min(70vw, 280px); height: 7px; margin: 24px auto 0; overflow: hidden; border-radius: 999px; background: rgb(6 74 126 / 9%); }
+      .startup-first-paint__bar::after { display: block; width: 45%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #064a7e, #16a6a1); content: ''; animation: first-paint-load 1.35s ease-in-out infinite; }
+      @keyframes first-paint-enter { from { opacity: 0; transform: translateY(12px); } }
+      @keyframes first-paint-float { 50% { transform: translateY(5px); } }
+      @keyframes first-paint-load { from { transform: translateX(-110%); } to { transform: translateX(245%); } }
+      @media (prefers-reduced-motion: reduce) { .startup-first-paint * { animation: none !important; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="startup-first-paint" aria-label="PulseUp is starting">
+        <section class="startup-first-paint__content">
+          <img class="startup-first-paint__mark" src="/favicon.svg" alt="" />
+          <p class="startup-first-paint__name">PULSE<strong>UP</strong></p>
+          <p class="startup-first-paint__text">Connecting to the secure clinic service…</p>
+          <div class="startup-first-paint__bar" aria-hidden="true"></div>
+        </section>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

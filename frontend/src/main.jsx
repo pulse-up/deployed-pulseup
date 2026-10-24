@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './app/App';
+import StartupGate from './components/shared/StartupGate';
 import './styles/base.css';
 import './styles/compact.css';
 
@@ -14,7 +15,9 @@ if (!rootElement) {
 }
 
 createRoot(rootElement).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  <StartupGate>
+    <StrictMode>
+      <App />
+    </StrictMode>
+  </StartupGate>,
 );

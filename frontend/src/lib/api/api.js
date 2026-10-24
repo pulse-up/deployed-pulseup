@@ -2,10 +2,40 @@ import axios from 'axios';
 
 import { clearSession, getToken } from '../utils/session';
 
+const normalizeApiBaseUrl = (value) => {
+  const configuredValue = value?.trim();
+  return (configuredValue || '/api').replace(/\/+$/, '');
+};
+
+export const API_BASE_URL = normalizeApiBaseUrl(
+  import.meta.env.VITE_API_BASE_URL,
+);
+
+const readinessApi = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 15000,
+  headers: {
+    Accept: 'application/json',
+  },
+});
+
+export async function checkApiHealth({ signal } = {}) {
+  const response = await readinessApi.get('/health', {
+    signal,
+    validateStatus: () => true,
+  });
+
+  return (
+    response.status >= 200 &&
+    response.status < 300 &&
+    response.data?.status === 'UP'
+  );
+}
+
 const api = axios.create({
   // Vite proxies /api to Spring Boot during local development. Set
   // VITE_API_BASE_URL only when the API is hosted at another origin.
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: API_BASE_URL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
