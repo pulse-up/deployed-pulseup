@@ -1,23 +1,35 @@
 .pulseup-logo {
+  --pulseup-logo-width: clamp(7rem, 11vw, 9rem);
   display: inline-flex;
-  align-items: baseline;
-  color: #064a7e;
-  font-size: 1.4rem;
-  font-weight: 900;
-  letter-spacing: -0.05em;
-  line-height: 1;
+  align-items: center;
+  width: var(--pulseup-logo-width);
+  max-width: 100%;
+  flex: none;
+  border-radius: 8px;
+  line-height: 0;
   text-decoration: none;
 }
 
-.pulseup-logo__up {
-  color: #16a6a1;
+.pulseup-logo__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
-.pulseup-logo--light,
-.pulseup-logo--light .pulseup-logo__pulse {
-  color: #ffffff;
+.pulseup-logo--light .pulseup-logo__image {
+  filter: brightness(0) invert(1);
+  opacity: 0.96;
 }
 
-.pulseup-logo--light .pulseup-logo__up {
-  color: #54d7cf;
+.pulseup-logo:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px #0a2540;
+}
+
+@media (max-width: 640px) {
+  .pulseup-logo {
+    --pulseup-logo-width: 6.9rem;
+  }
 }

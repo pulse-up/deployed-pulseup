@@ -165,6 +165,7 @@ function ResponsiveHeader({
           <PulseUpLogo
             className="pulse-responsive-header__logo"
             to="/"
+            light={variant === 'auth'}
             onClick={closeMenu}
           />
         )}

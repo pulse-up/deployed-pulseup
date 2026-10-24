@@ -45,6 +45,7 @@
 }
 
 .pulse-responsive-header__logo {
+    --pulseup-logo-width: clamp(7rem, 12vw, 8.5rem);
     flex: none;
 }
 

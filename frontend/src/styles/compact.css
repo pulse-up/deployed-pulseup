@@ -446,7 +446,7 @@ th,
 }
 
 .home-logo {
-  font-size: 18px;
+  --pulseup-logo-width: 8.25rem;
 }
 
 .home-links > a,
@@ -1150,7 +1150,7 @@ th,
   }
 
   .home-page .home-logo {
-    font-size: 1rem;
+    --pulseup-logo-width: 6.9rem;
   }
 
   .home-page .bmc-hero-content h1 {

@@ -12,10 +12,15 @@ function PulseUpLogo({ className = '', href, light = false, onClick, to }) {
     .join(' ');
 
   const content = (
-    <>
-      <span className="pulseup-logo__pulse">PULSE</span>
-      <span className="pulseup-logo__up">UP</span>
-    </>
+    <img
+      className="pulseup-logo__image"
+      src="/images/pulseup-logo.webp"
+      width="960"
+      height="313"
+      alt=""
+      decoding="async"
+      draggable="false"
+    />
   );
 
   if (to) {

@@ -202,11 +202,7 @@
 }
 
 .pulse-auth-page .pulse-responsive-header__logo {
-    color: #ffffff;
-}
-
-.pulse-auth-page .pulse-responsive-header__logo .pulseup-logo__up {
-    color: #54d7cf;
+    --pulseup-logo-width: 7.25rem;
 }
 
 .pulse-auth-page .pulse-responsive-header__desktop-link {
