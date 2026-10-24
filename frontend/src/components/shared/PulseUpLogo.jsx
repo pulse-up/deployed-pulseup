@@ -16,7 +16,7 @@ function PulseUpLogo({ className = '', href, light = false, onClick, to }) {
       className="pulseup-logo__image"
       src="/images/pulseup-logo.webp"
       width="960"
-      height="313"
+      height="314"
       alt=""
       decoding="async"
       draggable="false"
