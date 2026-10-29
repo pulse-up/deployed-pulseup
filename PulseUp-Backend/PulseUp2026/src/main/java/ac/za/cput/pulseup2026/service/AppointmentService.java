@@ -10,6 +10,7 @@ import ac.za.cput.pulseup2026.repository.AppointmentRepository;
 import ac.za.cput.pulseup2026.repository.StudentRepository;
 import ac.za.cput.pulseup2026.repository.TimeSlotRepository;
 import ac.za.cput.pulseup2026.response.AppointmentQueueResponse;
+import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,8 @@ import java.util.Set;
 
 @Service
 public class AppointmentService {
+
+    private static final int MAX_NOTES_LENGTH = 255;
 
     private static final Set<String> QUEUE_STATUSES =
             Set.of(
@@ -40,11 +43,14 @@ public class AppointmentService {
     private final HealthPointService
             healthPointService;
 
+    private final EntityManager entityManager;
+
     public AppointmentService(
             AppointmentRepository appointmentRepository,
             StudentRepository studentRepository,
             TimeSlotRepository timeSlotRepository,
-            HealthPointService healthPointService
+            HealthPointService healthPointService,
+            EntityManager entityManager
     ) {
         this.appointmentRepository =
                 appointmentRepository;
@@ -57,6 +63,8 @@ public class AppointmentService {
 
         this.healthPointService =
                 healthPointService;
+
+        this.entityManager = entityManager;
     }
 
     @Transactional
@@ -69,36 +77,54 @@ public class AppointmentService {
             return null;
         }
 
+        String cleanedNotes = notes == null
+                ? null
+                : notes.trim();
+
+        if (
+                cleanedNotes != null &&
+                        cleanedNotes.length() > MAX_NOTES_LENGTH
+        ) {
+            return null;
+        }
+
+        if (cleanedNotes != null && cleanedNotes.isEmpty()) {
+            cleanedNotes = null;
+        }
+
         Student student = studentRepository
                 .findById(studentId)
                 .orElse(null);
 
         TimeSlot timeSlot = timeSlotRepository
-                .findByIdForUpdate(slotId)
+                .findById(slotId)
                 .orElse(null);
 
-        if (
-                student == null ||
-                        !student.isActive() ||
-                        timeSlot == null ||
-                        !timeSlot.isAvailable()
-        ) {
+        if (student == null || !student.isActive()) {
             return null;
+        }
+
+        if (timeSlot == null || !timeSlot.isAvailable()) {
+            throw new SlotUnavailableException();
         }
 
         Appointment appointment =
                 AppointmentFactory.createAppointment(
                         student,
                         timeSlot,
-                        notes
+                        cleanedNotes
                 );
 
         if (appointment == null) {
             return null;
         }
 
+        if (timeSlotRepository.reserveIfAvailable(slotId) != 1) {
+            throw new SlotUnavailableException();
+        }
+
+        entityManager.refresh(timeSlot);
         timeSlot.reserve();
-        timeSlotRepository.save(timeSlot);
 
         return appointmentRepository.save(
                 appointment
@@ -338,13 +364,11 @@ public class AppointmentService {
 
         TimeSlot newTimeSlot =
                 timeSlotRepository
-                        .findByIdForUpdate(newSlotId)
+                        .findById(newSlotId)
                         .orElse(null);
 
         if (
                 appointment == null ||
-                        newTimeSlot == null ||
-                        !newTimeSlot.isAvailable() ||
                         "CANCELLED".equals(
                                 appointment.getStatus()
                         ) ||
@@ -353,6 +377,10 @@ public class AppointmentService {
                         )
         ) {
             return null;
+        }
+
+        if (newTimeSlot == null || !newTimeSlot.isAvailable()) {
+            throw new SlotUnavailableException();
         }
 
         if (
@@ -378,18 +406,19 @@ public class AppointmentService {
             return null;
         }
 
+        if (timeSlotRepository.reserveIfAvailable(newSlotId) != 1) {
+            throw new SlotUnavailableException();
+        }
+
+        entityManager.refresh(newTimeSlot);
+        newTimeSlot.reserve();
+
         appointment.reschedule(
                 newTimeSlot
         );
 
-        newTimeSlot.reserve();
-
         timeSlotRepository.save(
                 oldTimeSlot
-        );
-
-        timeSlotRepository.save(
-                newTimeSlot
         );
 
         return appointmentRepository.save(
@@ -540,6 +569,7 @@ public class AppointmentService {
 
         return new AppointmentQueueResponse(
                 appointment.getAppointmentId(),
+                timeSlot.getSlotId(),
                 appointment.getAppointmentType(),
                 appointment.getStatus(),
                 appointment.getNotes(),

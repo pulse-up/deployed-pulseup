@@ -3,6 +3,7 @@ package ac.za.cput.pulseup2026.controller;
 import ac.za.cput.pulseup2026.domain.Appointment;
 import ac.za.cput.pulseup2026.response.AppointmentQueueResponse;
 import ac.za.cput.pulseup2026.service.AppointmentService;
+import ac.za.cput.pulseup2026.service.SlotUnavailableException;
 import ac.za.cput.pulseup2026.util.JwtClaims;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +28,17 @@ public class AppointmentController {
             @RequestParam Long slotId, @RequestParam(required = false) String notes) {
         Long studentId = JwtClaims.getUserId(jwt);
         if (studentId == null || !JwtClaims.hasRole(jwt, "STUDENT")) return forbidden();
-        Appointment saved = appointmentService.createAppointment(studentId, slotId, notes);
-        return saved == null ? ResponseEntity.badRequest().build() :
-                ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        if (notes != null && notes.trim().length() > 255) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            Appointment saved = appointmentService.createAppointment(studentId, slotId, notes);
+            return saved == null
+                    ? ResponseEntity.badRequest().build()
+                    : ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (SlotUnavailableException exception) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @GetMapping("/my-queue")
@@ -103,9 +112,15 @@ public class AppointmentController {
             @RequestParam Long slotId, @AuthenticationPrincipal Jwt jwt) {
         boolean admin = JwtClaims.hasRole(jwt, "ADMIN");
         if (!admin && !JwtClaims.hasRole(jwt, "STUDENT")) return forbidden();
-        Appointment updated = appointmentService.rescheduleAppointment(id, slotId,
-                JwtClaims.getUserId(jwt), admin);
-        return updated == null ? ResponseEntity.badRequest().build() : ResponseEntity.ok(updated);
+        try {
+            Appointment updated = appointmentService.rescheduleAppointment(id, slotId,
+                    JwtClaims.getUserId(jwt), admin);
+            return updated == null
+                    ? ResponseEntity.badRequest().build()
+                    : ResponseEntity.ok(updated);
+        } catch (SlotUnavailableException exception) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @DeleteMapping("/{id}")

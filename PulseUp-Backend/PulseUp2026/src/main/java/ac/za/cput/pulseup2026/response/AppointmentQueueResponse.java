@@ -5,6 +5,7 @@ import java.time.LocalTime;
 
 public record AppointmentQueueResponse(
         Long appointmentId,
+        Long slotId,
         String appointmentType,
         String status,
         String notes,

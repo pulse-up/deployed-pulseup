@@ -11,6 +11,7 @@ import ac.za.cput.pulseup2026.factory.StudentFactory;
 import ac.za.cput.pulseup2026.repository.AppointmentRepository;
 import ac.za.cput.pulseup2026.repository.StudentRepository;
 import ac.za.cput.pulseup2026.repository.TimeSlotRepository;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -26,8 +27,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -56,6 +57,9 @@ class AppointmentServiceTest {
     @Mock
     private HealthPointService healthPointService;
 
+    @Mock
+    private EntityManager entityManager;
+
     @InjectMocks
     private AppointmentService appointmentService;
 
@@ -72,9 +76,10 @@ class AppointmentServiceTest {
         assertNotNull(slot);
         when(studentRepository.findById(STUDENT_ID))
                 .thenReturn(Optional.of(student));
-        when(timeSlotRepository.findByIdForUpdate(SLOT_ID))
+        when(timeSlotRepository.findById(SLOT_ID))
                 .thenReturn(Optional.of(slot));
-        when(timeSlotRepository.save(slot)).thenReturn(slot);
+        when(timeSlotRepository.reserveIfAvailable(SLOT_ID))
+                .thenReturn(1);
         when(appointmentRepository.save(any(Appointment.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -92,39 +97,53 @@ class AppointmentServiceTest {
         assertEquals("Headache", result.getNotes());
         assertFalse(slot.isAvailable());
 
-        InOrder saveOrder = inOrder(timeSlotRepository, appointmentRepository);
-        saveOrder.verify(timeSlotRepository).save(slot);
+        InOrder saveOrder = inOrder(
+                timeSlotRepository,
+                entityManager,
+                appointmentRepository
+        );
+        saveOrder.verify(timeSlotRepository).reserveIfAvailable(SLOT_ID);
+        saveOrder.verify(entityManager).refresh(slot);
         saveOrder.verify(appointmentRepository).save(result);
         verifyNoInteractions(healthPointService);
     }
 
     /*
-     * T-05: An unavailable slot cannot be booked. The service must reject the
-     * request with null and must not save either the slot or a new appointment.
+     * T-05: If another transaction reserves a slot after it was listed, the
+     * atomic update must lose cleanly and no appointment may be persisted.
      */
     @Test
-    void shouldRejectAppointmentWhenSlotIsUnavailable() {
+    void shouldRejectAppointmentWhenAtomicReservationIsLost() {
         Student student = createStudent();
-        TimeSlot slot = createTimeSlot(false);
+        TimeSlot slot = createTimeSlot(true);
         assertNotNull(student);
         assertNotNull(slot);
         when(studentRepository.findById(STUDENT_ID))
                 .thenReturn(Optional.of(student));
-        when(timeSlotRepository.findByIdForUpdate(SLOT_ID))
+        when(timeSlotRepository.findById(SLOT_ID))
                 .thenReturn(Optional.of(slot));
+        when(timeSlotRepository.reserveIfAvailable(SLOT_ID))
+                .thenReturn(0);
 
-        Appointment result = appointmentService.createAppointment(
-                STUDENT_ID,
-                SLOT_ID,
-                "Headache"
+        assertThrows(
+                SlotUnavailableException.class,
+                () -> appointmentService.createAppointment(
+                        STUDENT_ID,
+                        SLOT_ID,
+                        "Headache"
+                )
         );
 
-        assertNull(result);
-        assertFalse(slot.isAvailable());
+        assertTrue(slot.isAvailable());
         verify(studentRepository).findById(STUDENT_ID);
-        verify(timeSlotRepository).findByIdForUpdate(SLOT_ID);
+        verify(timeSlotRepository).findById(SLOT_ID);
+        verify(timeSlotRepository).reserveIfAvailable(SLOT_ID);
         verify(timeSlotRepository, never()).save(any(TimeSlot.class));
-        verifyNoInteractions(appointmentRepository, healthPointService);
+        verifyNoInteractions(
+                entityManager,
+                appointmentRepository,
+                healthPointService
+        );
     }
 
     /*

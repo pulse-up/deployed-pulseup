@@ -35,6 +35,7 @@ const APPOINTMENT_SERVICE_DESCRIPTIONS = {
 };
 const ACTIVE_STATUSES = ['PENDING', 'CONFIRMED', 'RESCHEDULED'];
 const TERMINAL_STATUSES = ['COMPLETED', 'CANCELLED', 'NO_SHOW'];
+const BOOKING_VERIFICATION_DELAYS_MS = [0, 1000, 2500, 5000];
 
 function StudentActionIcon({ type }) {
   const paths = {
@@ -85,6 +86,40 @@ function getErrorMessage(error, fallback) {
   }
 
   return serverMessage || fallback;
+}
+
+async function verifyAppointmentSlot(slotId, appointmentId = null) {
+  let latestAppointments = [];
+
+  for (const delay of BOOKING_VERIFICATION_DELAYS_MS) {
+    if (delay > 0) {
+      await new Promise((resolve) => window.setTimeout(resolve, delay));
+    }
+
+    try {
+      const response = await api.get('/appointments/my-queue', {
+        timeout: 5000,
+      });
+      latestAppointments = toArray(response.data);
+      const matched = latestAppointments.some(
+        (appointment) =>
+          Number(appointment.slotId) === slotId &&
+          ACTIVE_STATUSES.includes(appointment.status) &&
+          (appointmentId === null ||
+            Number(appointment.appointmentId) === appointmentId),
+      );
+
+      if (matched) {
+        return { matched: true, latestAppointments };
+      }
+    } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        throw error;
+      }
+    }
+  }
+
+  return { matched: false, latestAppointments };
 }
 
 async function fetchDashboardData(appointmentType) {
@@ -240,22 +275,87 @@ function StudentDashboard() {
     setDashboardSection(section);
   }
 
+  function removeUnavailableSlot(slotId) {
+    const keepOtherSlots = (slot) => Number(slot.slotId) !== slotId;
+    setBookingSlots((current) => current.filter(keepOtherSlots));
+    setAllTimeSlots((current) => current.filter(keepOtherSlots));
+  }
+
   function getRescheduleOptions(appointment) {
     return allTimeSlots.filter((slot) => slot.available === true && slot.appointmentType === appointment.appointmentType && String(slot.slotId) !== String(appointment.slotId));
   }
 
   async function handleBooking(event) {
     event.preventDefault();
-    if (!selectedSlotId) { setMessage('Please select an available time slot.'); return; }
+    const slotId = Number(selectedSlotId);
+
+    if (!Number.isSafeInteger(slotId) || slotId <= 0) {
+      setMessage('Please select an available time slot.');
+      return;
+    }
+
     try {
-      setSubmitting(true); setMessage('');
-      await api.post('/appointments', null, { params: { slotId: Number(selectedSlotId), notes: notes.trim() || undefined } });
-      setSelectedSlotId(''); setNotes(''); setActiveTab('all');
-      await refreshDashboardData();
-      setMessage('Your appointment was booked and is awaiting staff confirmation.');
+      setSubmitting(true);
+      setMessage('');
+      await api.post('/appointments', null, {
+        params: { slotId, notes: notes.trim() || undefined },
+        timeout: 30000,
+      });
+
+      removeUnavailableSlot(slotId);
+      setSelectedSlotId('');
+      setNotes('');
+      setActiveTab('all');
+
+      const refreshed = await refreshDashboardData();
+      setMessage(
+        refreshed
+          ? 'Your appointment was booked and is awaiting staff confirmation.'
+          : 'Your appointment was booked. Refresh the page to load the latest details.',
+      );
     } catch (error) {
-      setMessage(getErrorMessage(error, 'The appointment could not be booked. The selected slot may no longer be available.'));
-    } finally { setSubmitting(false); }
+      const status = error.response?.status;
+
+      const responseWasUncertain =
+        !error.response || status >= 500 || status === 409;
+
+      if (responseWasUncertain) {
+        try {
+          const verification = await verifyAppointmentSlot(slotId);
+
+          if (verification.matched) {
+            setAppointments(verification.latestAppointments);
+            removeUnavailableSlot(slotId);
+            setSelectedSlotId('');
+            setNotes('');
+            setActiveTab('all');
+            setMessage('Your appointment was booked and is awaiting staff confirmation.');
+            return;
+          }
+        } catch (verificationError) {
+          console.error('Could not verify the booking after an uncertain response:', verificationError);
+        }
+      }
+
+      if (status === 409) {
+        setSelectedSlotId('');
+        removeUnavailableSlot(slotId);
+        const refreshed = await refreshDashboardData();
+        setMessage(
+          refreshed
+            ? 'That time slot has just been booked or closed. Please choose another available slot.'
+            : 'That time slot is no longer available, and the latest slots could not be loaded. Refresh the page before choosing another slot.',
+        );
+      } else if (status === 400) {
+        setMessage('The booking details were not accepted. Check your selection and keep notes within 255 characters.');
+      } else if (responseWasUncertain) {
+        setMessage('We could not confirm whether the booking was saved. Refresh My appointments before trying again.');
+      } else {
+        setMessage(getErrorMessage(error, 'The booking could not be completed. Please try again.'));
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleCancellation(appointmentId) {
@@ -276,18 +376,77 @@ function StudentDashboard() {
   }
 
   async function handleReschedule(appointmentId) {
-    const slotId = rescheduleSlots[appointmentId];
-    if (!slotId) { setMessage('Select a new available time slot first.'); return; }
+    const numericAppointmentId = Number(appointmentId);
+    const slotId = Number(rescheduleSlots[appointmentId]);
+    if (
+      !Number.isSafeInteger(numericAppointmentId) ||
+      !Number.isSafeInteger(slotId) ||
+      slotId <= 0
+    ) {
+      setMessage('Select a new available time slot first.');
+      return;
+    }
     try {
-      setSubmitting(true); setMessage('');
-      await api.patch(`/appointments/${appointmentId}/reschedule`, null, { params: { slotId: Number(slotId) } });
+      setSubmitting(true);
+      setMessage('');
+      await api.patch(`/appointments/${appointmentId}/reschedule`, null, {
+        params: { slotId },
+        timeout: 30000,
+      });
+      removeUnavailableSlot(slotId);
       setRescheduleSlots((current) => ({ ...current, [appointmentId]: '' }));
       setActiveTab('rescheduled');
-      await refreshDashboardData();
-      setMessage('Your appointment was rescheduled successfully.');
+      const refreshed = await refreshDashboardData();
+      setMessage(
+        refreshed
+          ? 'Your appointment was rescheduled successfully.'
+          : 'Your appointment was rescheduled. Refresh the page to load the latest details.',
+      );
     } catch (error) {
-      setMessage(getErrorMessage(error, 'The appointment could not be rescheduled.'));
-    } finally { setSubmitting(false); }
+      const status = error.response?.status;
+      const responseWasUncertain =
+        !error.response || status >= 500 || status === 409;
+
+      if (responseWasUncertain) {
+        try {
+          const verification = await verifyAppointmentSlot(
+            slotId,
+            numericAppointmentId,
+          );
+
+          if (verification.matched) {
+            setAppointments(verification.latestAppointments);
+            removeUnavailableSlot(slotId);
+            setRescheduleSlots((current) => ({
+              ...current,
+              [appointmentId]: '',
+            }));
+            setActiveTab('rescheduled');
+            setMessage('Your appointment was rescheduled successfully.');
+            return;
+          }
+        } catch (verificationError) {
+          console.error('Could not verify the reschedule after an uncertain response:', verificationError);
+        }
+      }
+
+      if (status === 409) {
+        removeUnavailableSlot(slotId);
+        setRescheduleSlots((current) => ({ ...current, [appointmentId]: '' }));
+        const refreshed = await refreshDashboardData();
+        setMessage(
+          refreshed
+            ? 'That replacement slot has just been booked or closed. Please choose another available slot.'
+            : 'That replacement slot is no longer available, and the latest slots could not be loaded. Refresh the page before choosing another slot.',
+        );
+      } else if (responseWasUncertain) {
+        setMessage('We could not confirm whether the appointment was rescheduled. Refresh My appointments before trying again.');
+      } else {
+        setMessage(getErrorMessage(error, 'The appointment could not be rescheduled.'));
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleLogout() {
@@ -427,7 +586,7 @@ function StudentDashboard() {
 
   function renderAppointments() {
     return (
-      <section className="dashboard-grid student-appointments-grid"><div><article className="dashboard-panel"><p className="eyebrow">NEW APPOINTMENT</p><h2>Book a clinic visit</h2><form className="booking-form" onSubmit={handleBooking}><label>Appointment type<select value={appointmentType} onChange={(event) => { setAppointmentType(event.target.value); setSelectedSlotId(''); }} disabled={submitting}>{APPOINTMENT_TYPES.map((type) => <option value={type} key={type}>{type}</option>)}</select></label><label>Available time slot<select value={selectedSlotId} onChange={(event) => setSelectedSlotId(event.target.value)} required disabled={submitting || loading || availableSlots.length === 0}><option value="">{loading ? 'Loading available slots...' : availableSlots.length === 0 ? 'No available slots for this type' : 'Select a time slot'}</option>{availableSlots.map((slot) => <option value={slot.slotId} key={slot.slotId}>{formatSlot(slot)}</option>)}</select></label><label>Notes for the clinic<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={4} disabled={submitting} placeholder="Optional information about your visit" /></label><button type="submit" className="primary-button" disabled={submitting || loading || availableSlots.length === 0}>{submitting ? 'Booking...' : 'Confirm appointment'}</button></form></article></div><article className="dashboard-panel bookings-panel"><p className="eyebrow">ACTIVE BOOKINGS</p><h2>My appointments</h2><div className="booking-tabs">{appointmentTabs.map(([key, label]) => <button type="button" className={activeTab === key ? 'booking-tab active' : 'booking-tab'} onClick={() => setActiveTab(key)} key={key}>{label} ({key === 'all' ? activeAppointments.length : activeAppointments.filter((item) => item.status === key.toUpperCase()).length})</button>)}</div>{loading ? <p>Loading appointments...</p> : visibleActive.length === 0 ? <p className="empty-message">No active appointments in this section.</p> : <div className="appointment-list">{visibleActive.map((appointment) => renderAppointment(appointment))}</div>}</article></section>
+      <section className="dashboard-grid student-appointments-grid"><div><article className="dashboard-panel"><p className="eyebrow">NEW APPOINTMENT</p><h2>Book a clinic visit</h2><form className="booking-form" onSubmit={handleBooking}><label>Appointment type<select value={appointmentType} onChange={(event) => { setAppointmentType(event.target.value); setSelectedSlotId(''); }} disabled={submitting}>{APPOINTMENT_TYPES.map((type) => <option value={type} key={type}>{type}</option>)}</select></label><label>Available time slot<select value={selectedSlotId} onChange={(event) => setSelectedSlotId(event.target.value)} required disabled={submitting || loading || availableSlots.length === 0}><option value="">{loading ? 'Loading available slots...' : availableSlots.length === 0 ? 'No available slots for this type' : 'Select a time slot'}</option>{availableSlots.map((slot) => <option value={slot.slotId} key={slot.slotId}>{formatSlot(slot)}</option>)}</select></label><label>Notes for the clinic<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={4} maxLength={255} disabled={submitting} placeholder="Optional information about your visit" /></label><button type="submit" className="primary-button" disabled={submitting || loading || availableSlots.length === 0}>{submitting ? 'Booking...' : 'Confirm appointment'}</button></form></article></div><article className="dashboard-panel bookings-panel"><p className="eyebrow">ACTIVE BOOKINGS</p><h2>My appointments</h2><div className="booking-tabs">{appointmentTabs.map(([key, label]) => <button type="button" className={activeTab === key ? 'booking-tab active' : 'booking-tab'} onClick={() => setActiveTab(key)} key={key}>{label} ({key === 'all' ? activeAppointments.length : activeAppointments.filter((item) => item.status === key.toUpperCase()).length})</button>)}</div>{loading ? <p>Loading appointments...</p> : visibleActive.length === 0 ? <p className="empty-message">No active appointments in this section.</p> : <div className="appointment-list">{visibleActive.map((appointment) => renderAppointment(appointment))}</div>}</article></section>
     );
   }
 

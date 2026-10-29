@@ -94,7 +94,7 @@ Staff records COMPLETED or NO_SHOW
 A completed visit awards Health Points once
 ```
 
-Students can cancel eligible appointments or move them to another compatible open slot. Slot reservation uses a database lock to reduce double booking.
+Students can cancel eligible appointments or move them to another compatible open slot. Slot reservation uses an atomic conditional database update so only one request can claim an available slot.
 
 ### Sick note and optional referral
 
@@ -188,7 +188,7 @@ PulseUp includes:
 - Resource ownership checks for student bookings, staff schedules, and clinical reviews.
 - Exact production CORS origin configuration.
 - Input validation and status-transition allowlists.
-- Pessimistic time-slot locking for booking and rescheduling.
+- Atomic conditional time-slot reservation for booking and rescheduling.
 - Five-megabyte profile-image limits, image decoding, square resizing, and metadata-removing re-encoding.
 - Authenticated profile-image retrieval with no-store caching.
 - Minimum-necessary fields in generated clinic letters.

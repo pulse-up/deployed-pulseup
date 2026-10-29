@@ -1,10 +1,9 @@
 package ac.za.cput.pulseup2026.repository;
 
 import ac.za.cput.pulseup2026.domain.TimeSlot;
-import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -39,8 +38,17 @@ public interface TimeSlotRepository
 
     boolean existsByStaff_UserId(Long staffId);
 
-    @EntityGraph(attributePaths = "staff")
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select slot from TimeSlot slot where slot.slotId = :slotId")
-    Optional<TimeSlot> findByIdForUpdate(@Param("slotId") Long slotId);
+    /*
+     * Atomically reserves a slot only while it is still available. The affected
+     * row count is the booking decision, which works consistently on MySQL and
+     * TiDB without a joined pessimistic-lock query.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            update TimeSlot slot
+               set slot.available = false
+             where slot.slotId = :slotId
+               and slot.available = true
+            """)
+    int reserveIfAvailable(@Param("slotId") Long slotId);
 }
