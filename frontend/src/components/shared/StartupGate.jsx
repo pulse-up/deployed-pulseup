@@ -5,7 +5,7 @@ import '../../styles/components/shared/StartupGate.css';
 
 const RETRY_DELAYS_MS = [1200, 2000, 3000, 5000, 8000, 10000];
 const LONG_WAIT_MS = 45000;
-const MINIMUM_SPLASH_MS = 1100;
+const READY_VISIBLE_MS = 1800;
 
 function getAttemptMessage(attempt, isLongWait) {
   if (isLongWait) return 'The service is taking longer than expected';
@@ -63,14 +63,9 @@ function StartupGate({ children }) {
           setMessage('Connection ready');
           setPhase('ready');
 
-          const remainingSplashTime = Math.max(
-            550,
-            MINIMUM_SPLASH_MS - (Date.now() - startedAt),
-          );
-
           readyTimer = window.setTimeout(() => {
             if (active) setPhase('complete');
-          }, remainingSplashTime);
+          }, READY_VISIBLE_MS);
           return;
         }
       } catch (error) {
@@ -79,8 +74,7 @@ function StartupGate({ children }) {
 
       if (!active) return;
 
-      const totalWait = Date.now() - startedAt;
-      if (totalWait >= LONG_WAIT_MS) {
+      if (Date.now() - startedAt >= LONG_WAIT_MS) {
         setIsLongWait(true);
         setMessage('The service is taking longer than expected');
       }
@@ -91,7 +85,7 @@ function StartupGate({ children }) {
       retryTimer = window.setTimeout(checkReadiness, delay);
     };
 
-    checkReadiness();
+    void checkReadiness();
 
     return () => {
       active = false;
@@ -110,54 +104,52 @@ function StartupGate({ children }) {
     setRunKey((current) => current + 1);
   };
 
-  if (phase === 'complete') return children;
-
   const roundedProgress = Math.round(progress);
 
   return (
-    <main className={`startup-gate startup-gate--${phase}`}>
-      <div className="startup-gate__aurora startup-gate__aurora--one" />
-      <div className="startup-gate__aurora startup-gate__aurora--two" />
-      <div className="startup-gate__grid" />
+    <>
+      {children}
 
-      <section className="startup-gate__content" aria-label="Website startup progress">
-        <div className="startup-gate__spinner" aria-hidden="true">
-          <span className="startup-gate__ring startup-gate__ring--outer"><i /></span>
-          <span className="startup-gate__ring startup-gate__ring--middle"><i /></span>
-          <span className="startup-gate__ring startup-gate__ring--inner" />
-          <span className="startup-gate__core" />
-        </div>
-
-        <div className="startup-gate__percentage" aria-hidden="true">
-          <strong>{roundedProgress}</strong><span>%</span>
-        </div>
-
-        <div
-          className="startup-gate__progress"
-          role="progressbar"
-          aria-label="Service startup progress"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          aria-valuenow={roundedProgress}
+      {phase !== 'complete' ? (
+        <aside
+          className={`service-readiness service-readiness--${phase}`}
+          aria-label="Background service startup progress"
         >
-          <span style={{ width: `${progress}%` }} />
-        </div>
+          <div className="service-readiness__card">
+            <span className="service-readiness__spinner" aria-hidden="true" />
 
-        <p className="startup-gate__sr-status" role="status" aria-live="polite">
-          {message}
-        </p>
+            <div
+              className="service-readiness__progress"
+              role="progressbar"
+              aria-label="Background service startup progress"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow={roundedProgress}
+            >
+              <span style={{ width: `${progress}%` }} />
+            </div>
 
-        {isLongWait && phase !== 'ready' ? (
-          <button
-            type="button"
-            className="startup-gate__retry"
-            onClick={restartCheck}
-          >
-            Check again
-          </button>
-        ) : null}
-      </section>
-    </main>
+            <strong className="service-readiness__percentage" aria-hidden="true">
+              {roundedProgress}%
+            </strong>
+
+            <p className="service-readiness__sr-status" role="status" aria-live="polite">
+              {message}
+            </p>
+
+            {isLongWait && phase !== 'ready' ? (
+              <button
+                type="button"
+                className="service-readiness__retry"
+                onClick={restartCheck}
+              >
+                Check again
+              </button>
+            ) : null}
+          </div>
+        </aside>
+      ) : null}
+    </>
   );
 }
 
