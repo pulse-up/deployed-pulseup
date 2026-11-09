@@ -3,6 +3,10 @@ package ac.za.cput.pulseup2026.service;
 import ac.za.cput.pulseup2026.domain.Student;
 import ac.za.cput.pulseup2026.domain.YearOfStudy;
 import ac.za.cput.pulseup2026.factory.StudentFactory;
+import ac.za.cput.pulseup2026.repository.AppointmentRepository;
+import ac.za.cput.pulseup2026.repository.FoodVoucherRepository;
+import ac.za.cput.pulseup2026.repository.HealthPointTransactionRepository;
+import ac.za.cput.pulseup2026.repository.SickNoteRepository;
 import ac.za.cput.pulseup2026.repository.StudentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +34,18 @@ class StudentServicePasswordTest {
     private StudentRepository studentRepository;
 
     @Mock
+    private AppointmentRepository appointmentRepository;
+
+    @Mock
+    private SickNoteRepository sickNoteRepository;
+
+    @Mock
+    private HealthPointTransactionRepository healthPointTransactionRepository;
+
+    @Mock
+    private FoodVoucherRepository foodVoucherRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     private StudentService studentService;
@@ -39,10 +55,14 @@ class StudentServicePasswordTest {
     void setUp() {
         studentService = new StudentService(
                 studentRepository,
+                appointmentRepository,
+                sickNoteRepository,
+                healthPointTransactionRepository,
+                foodVoucherRepository,
                 passwordEncoder
         );
         student = StudentFactory.createStudent(
-                "student@mycput.ac.za",
+                "230000001@mycput.ac.za",
                 "existing-hash",
                 "Test",
                 "Student",

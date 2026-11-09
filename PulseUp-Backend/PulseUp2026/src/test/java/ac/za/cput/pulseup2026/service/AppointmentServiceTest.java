@@ -224,12 +224,12 @@ class AppointmentServiceTest {
 
     private Student createStudent() {
         return StudentFactory.createStudent(
-                "student@pulseup.co.za",
+                "230000003@mycput.ac.za",
                 "encoded-password",
                 "Lwazi",
                 "Mbeki",
                 "0825550100",
-                "STU-001",
+                "230000003",
                 "Information Technology",
                 "District Six",
                 "Student Residence",

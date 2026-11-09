@@ -18,6 +18,7 @@ import ac.za.cput.pulseup2026.request.RegisterAdminRequest;
 import ac.za.cput.pulseup2026.request.RegisterStaffRequest;
 import ac.za.cput.pulseup2026.request.RegisterStudentRequest;
 import ac.za.cput.pulseup2026.response.StaffCreationResponse;
+import ac.za.cput.pulseup2026.util.StudentIdentityValidator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -227,7 +228,12 @@ public class AuthService {
 
         if (
                 user == null ||
-                        !user.isActive()
+                        !user.isActive() ||
+                        (user instanceof Student student &&
+                                !StudentIdentityValidator.isMatchingIdentity(
+                                        email,
+                                        student.getStudentNumber()
+                                ))
         ) {
             return null;
         }
@@ -249,14 +255,19 @@ public class AuthService {
             RegisterStudentRequest request
     ) {
         return request != null
-                && isValidStudentEmail(request.getEmail())
+                && StudentIdentityValidator.isMatchingIdentity(
+                        request.getEmail(),
+                        request.getStudentNumber()
+                )
                 && !isBlank(request.getPassword())
                 && request.getPassword().length() >= 8
                 && !isBlank(request.getFirstName())
                 && !isBlank(request.getLastName())
                 && isValidPhoneNumber(request.getPhoneNumber())
                 && !isBlank(request.getStudentNumber())
-                && request.getStudentNumber().trim().matches("\\d{8,12}")
+                && StudentIdentityValidator.isValidStudentNumber(
+                        request.getStudentNumber()
+                )
                 && !isBlank(request.getCourse())
                 && !isBlank(request.getCampus())
                 && !isBlank(request.getResidence())
@@ -324,12 +335,6 @@ public class AuthService {
         throw new IllegalArgumentException(
                 "Unsupported PulseUp user type"
         );
-    }
-
-    private boolean isValidStudentEmail(String email) {
-        return !isBlank(email)
-                && email.trim().toLowerCase()
-                .matches("^[^\\s@]+@mycput\\.ac\\.za$");
     }
 
     private boolean isValidEmail(String email) {

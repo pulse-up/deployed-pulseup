@@ -153,13 +153,16 @@ public class StudentController {
     public ResponseEntity<Void> deleteStudent(
             @PathVariable Long id
     ) {
-        boolean deleted = studentService.deleteStudent(id);
+        StudentService.DeleteResult result =
+                studentService.deleteStudent(id);
 
-        if (!deleted) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.noContent().build();
+        return switch (result) {
+            case DELETED -> ResponseEntity.noContent().build();
+            case HAS_LINKED_RECORDS -> ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .build();
+            case NOT_FOUND -> ResponseEntity.notFound().build();
+        };
     }
 
     @PatchMapping("/{id}/restore")

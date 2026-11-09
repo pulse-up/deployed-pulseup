@@ -129,9 +129,13 @@ function StudentProfile({
     async function handleSubmit(event) {
         event.preventDefault();
 
-        if (!/^[^\s@]+@mycput\.ac\.za$/i.test(profile.email.trim())) {
+        const normalisedEmail = profile.email.trim().toLowerCase();
+        if (
+            !/^2[0-9]{8}@mycput\.ac\.za$/.test(normalisedEmail) ||
+            normalisedEmail !== `${profile.studentNumber}@mycput.ac.za`
+        ) {
             setErrorMessage(
-                "Use your CPUT student email ending in @mycput.ac.za.",
+                "Enter a valid CPUT student email address.",
             );
             return;
         }
@@ -349,7 +353,7 @@ function StudentProfile({
                 </label>
                 <label>
                     Email address
-                    <input type="email" name="email" value={profile.email} onChange={handleChange} required disabled={saving} />
+                    <input type="email" name="email" value={profile.email} onChange={handleChange} pattern="2[0-9]{8}@mycput\.ac\.za" title="Enter a valid CPUT student email" required disabled={saving} />
                 </label>
                 <label>
                     Phone number

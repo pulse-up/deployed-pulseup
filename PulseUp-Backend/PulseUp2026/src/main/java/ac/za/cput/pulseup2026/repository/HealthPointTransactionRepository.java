@@ -13,6 +13,8 @@ public interface HealthPointTransactionRepository
         Long
         > {
 
+    boolean existsByStudentUserId(Long studentId);
+
     boolean existsByAppointmentAppointmentId(
             Long appointmentId
     );

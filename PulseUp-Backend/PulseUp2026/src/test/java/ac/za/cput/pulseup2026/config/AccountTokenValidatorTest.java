@@ -35,7 +35,7 @@ class AccountTokenValidatorTest {
     void setUp() {
         validator = new AccountTokenValidator(userRepository);
         student = StudentFactory.createStudent(
-                "validator@mycput.ac.za",
+                "230000002@mycput.ac.za",
                 "encoded-password",
                 "Token",
                 "Student",

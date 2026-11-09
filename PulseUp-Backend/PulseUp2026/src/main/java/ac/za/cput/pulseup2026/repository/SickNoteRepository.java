@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface SickNoteRepository extends JpaRepository<SickNote, Long> {
 
+    boolean existsByStudentUserId(Long studentId);
+
     boolean existsByAppointment_AppointmentId(Long appointmentId);
 
     @Query("""

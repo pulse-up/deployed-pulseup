@@ -127,23 +127,28 @@ function AdminDashboard() {
 
                 const [
                     studentsResponse,
+                    inactiveStudentsResponse,
                     staffResponse,
                     adminsResponse,
                     appointmentsResponse,
                     slotsResponse,
                 ] = await Promise.all([
                     api.get("/students"),
+                    api.get("/students/inactive/list"),
                     api.get("/staff"),
                     api.get("/admins"),
                     api.get("/appointments"),
                     api.get("/time-slots"),
                 ]);
 
-                setStudents(
-                    Array.isArray(studentsResponse.data)
+                setStudents([
+                    ...(Array.isArray(studentsResponse.data)
                         ? studentsResponse.data
-                        : [],
-                );
+                        : []),
+                    ...(Array.isArray(inactiveStudentsResponse.data)
+                        ? inactiveStudentsResponse.data
+                        : []),
+                ]);
 
                 setStaff(
                     Array.isArray(staffResponse.data)
@@ -251,8 +256,11 @@ function AdminDashboard() {
         userId,
         userName,
     ) {
+        const isStudentAccount = endpoint === "students";
         const confirmed = window.confirm(
-            `Are you sure you want to remove ${userName}?`,
+            isStudentAccount
+                ? `Permanently delete ${userName}? This is allowed only when the student has no linked records.`
+                : `Are you sure you want to remove ${userName}?`,
         );
 
         if (!confirmed) {
@@ -269,7 +277,9 @@ function AdminDashboard() {
             await loadDashboardData();
 
             setMessage(
-                `${userName} was removed successfully.`,
+                isStudentAccount
+                    ? `${userName} was permanently deleted.`
+                    : `${userName} was removed successfully.`,
             );
         } catch (error) {
             console.error(
@@ -280,6 +290,20 @@ function AdminDashboard() {
             if (error.response?.status === 403) {
                 setMessage(
                     "You do not have permission to remove this account.",
+                );
+            } else if (
+                isStudentAccount &&
+                error.response?.status === 409
+            ) {
+                setMessage(
+                    "This student account cannot be deleted while linked records exist.",
+                );
+            } else if (
+                isStudentAccount &&
+                error.response?.status === 404
+            ) {
+                setMessage(
+                    "This student account no longer exists.",
                 );
             } else {
                 setMessage(

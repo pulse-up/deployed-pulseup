@@ -16,6 +16,8 @@ import java.util.Set;
 public interface AppointmentRepository
         extends JpaRepository<Appointment, Long> {
 
+    boolean existsByStudentUserId(Long studentId);
+
     List<Appointment> findByStudent(Student student);
 
     List<Appointment> findByStatus(String status);

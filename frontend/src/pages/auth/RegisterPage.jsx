@@ -88,11 +88,14 @@ function RegisterPage() {
     if (Object.values(form).some((value) => !String(value).trim())) {
       return 'Please complete every required field.';
     }
-    if (!/^[^\s@]+@mycput\.ac\.za$/i.test(form.email.trim())) {
-      return 'Use your CPUT student email ending in @mycput.ac.za.';
-    }
-    if (!/^\d{8,12}$/.test(form.studentNumber.trim())) {
-      return 'The student number must contain 8 to 12 digits.';
+    const email = form.email.trim().toLowerCase();
+    const studentNumber = form.studentNumber.trim();
+    if (
+      !/^2[0-9]{8}@mycput\.ac\.za$/.test(email) ||
+      !/^2[0-9]{8}$/.test(studentNumber) ||
+      email !== `${studentNumber}@mycput.ac.za`
+    ) {
+      return 'Enter a valid CPUT student email and student number.';
     }
     if (!/^0\d{9}$/.test(form.phoneNumber.trim())) {
       return 'Enter a valid 10-digit South African phone number.';
@@ -232,13 +235,13 @@ function RegisterPage() {
                     onChange={updateField}
                     autoComplete="email"
                     placeholder="studentnumber@mycput.ac.za"
-                    pattern="[^@\s]+@mycput\.ac\.za"
-                    title="Enter your @mycput.ac.za student email"
+                    pattern="2[0-9]{8}@mycput\.ac\.za"
+                    title="Enter a valid CPUT student email"
                     maxLength={150}
                     disabled={isSubmitting}
                     required
                   />
-                  <small>Must end in @mycput.ac.za</small>
+                  <small>Use your CPUT student email</small>
                 </label>
 
                 <label className="pulse-auth-field">
@@ -269,8 +272,10 @@ function RegisterPage() {
                     value={form.studentNumber}
                     onChange={updateField}
                     inputMode="numeric"
-                    pattern="[0-9]{8,12}"
-                    maxLength={12}
+                    pattern="2[0-9]{8}"
+                    minLength={9}
+                    maxLength={9}
+                    title="Enter a valid CPUT student number"
                     disabled={isSubmitting}
                     required
                   />

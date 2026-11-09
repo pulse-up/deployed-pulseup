@@ -120,12 +120,14 @@ function LoginPage() {
       confirmPassword,
     } = recovery;
 
-    if (!/^[^\s@]+@mycput\.ac\.za$/i.test(email.trim())) {
-      setMessage('Enter your registered @mycput.ac.za student email.');
-      return;
-    }
-    if (!/^\d{8,12}$/.test(studentNumber.trim())) {
-      setMessage('Enter your registered student number.');
+    const normalisedEmail = email.trim().toLowerCase();
+    const normalisedStudentNumber = studentNumber.trim();
+    if (
+      !/^2[0-9]{8}@mycput\.ac\.za$/.test(normalisedEmail) ||
+      !/^2[0-9]{8}$/.test(normalisedStudentNumber) ||
+      normalisedEmail !== `${normalisedStudentNumber}@mycput.ac.za`
+    ) {
+      setMessage('Enter valid registered student details.');
       return;
     }
     if (!/^0\d{9}$/.test(phoneNumber.trim()) || !/^0\d{9}$/.test(emergencyContactPhone.trim())) {
@@ -146,14 +148,14 @@ function LoginPage() {
       setMessage('');
       setMessageType('error');
       await api.post('/auth/student/password-recovery', {
-        email: email.trim().toLowerCase(),
-        studentNumber: studentNumber.trim(),
+        email: normalisedEmail,
+        studentNumber: normalisedStudentNumber,
         phoneNumber: phoneNumber.trim(),
         emergencyContactPhone: emergencyContactPhone.trim(),
         newPassword,
       });
       clearSession();
-      setForm({ email: email.trim().toLowerCase(), password: '' });
+      setForm({ email: normalisedEmail, password: '' });
       setRecovery(INITIAL_RECOVERY);
       setMode('login');
       setMessageType('success');
@@ -192,8 +194,8 @@ function LoginPage() {
           ) : (
             <form className="pulse-recovery-form" onSubmit={handleRecovery}>
               <div className="pulse-recovery-grid">
-                <label className="pulse-auth-field"><span>Student email</span><input type="email" name="email" value={recovery.email} onChange={updateRecovery} autoComplete="email" placeholder="student@mycput.ac.za" disabled={isSubmitting} required autoFocus /></label>
-                <label className="pulse-auth-field"><span>Student number</span><input name="studentNumber" value={recovery.studentNumber} onChange={updateRecovery} inputMode="numeric" minLength="8" maxLength="12" disabled={isSubmitting} required /></label>
+                <label className="pulse-auth-field"><span>Student email</span><input type="email" name="email" value={recovery.email} onChange={updateRecovery} autoComplete="email" placeholder="studentnumber@mycput.ac.za" pattern="2[0-9]{8}@mycput\.ac\.za" title="Enter a valid CPUT student email" disabled={isSubmitting} required autoFocus /></label>
+                <label className="pulse-auth-field"><span>Student number</span><input name="studentNumber" value={recovery.studentNumber} onChange={updateRecovery} inputMode="numeric" pattern="2[0-9]{8}" minLength="9" maxLength="9" title="Enter a valid CPUT student number" disabled={isSubmitting} required /></label>
                 <label className="pulse-auth-field"><span>Registered phone</span><input type="tel" name="phoneNumber" value={recovery.phoneNumber} onChange={updateRecovery} placeholder="0712345678" maxLength="10" disabled={isSubmitting} required /></label>
                 <label className="pulse-auth-field"><span>Emergency contact phone</span><input type="tel" name="emergencyContactPhone" value={recovery.emergencyContactPhone} onChange={updateRecovery} placeholder="0712345678" maxLength="10" disabled={isSubmitting} required /></label>
                 <label className="pulse-auth-field"><span>New password</span><input type={showPassword ? 'text' : 'password'} name="newPassword" value={recovery.newPassword} onChange={updateRecovery} autoComplete="new-password" minLength="8" disabled={isSubmitting} required /></label>

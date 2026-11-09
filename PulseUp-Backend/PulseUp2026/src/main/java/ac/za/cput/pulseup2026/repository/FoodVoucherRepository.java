@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface FoodVoucherRepository
         extends JpaRepository<FoodVoucher, Long> {
 
+    boolean existsByStudentUserId(Long studentId);
+
     boolean existsByStudentUserIdAndPointsThreshold(
             Long studentId,
             int pointsThreshold

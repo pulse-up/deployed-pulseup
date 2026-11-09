@@ -1,9 +1,14 @@
 package ac.za.cput.pulseup2026.service;
 
 import ac.za.cput.pulseup2026.domain.Student;
+import ac.za.cput.pulseup2026.repository.AppointmentRepository;
+import ac.za.cput.pulseup2026.repository.FoodVoucherRepository;
+import ac.za.cput.pulseup2026.repository.HealthPointTransactionRepository;
+import ac.za.cput.pulseup2026.repository.SickNoteRepository;
 import ac.za.cput.pulseup2026.repository.StudentRepository;
 import ac.za.cput.pulseup2026.request.StudentPasswordRecoveryRequest;
 import ac.za.cput.pulseup2026.request.StudentProfileRequest;
+import ac.za.cput.pulseup2026.util.StudentIdentityValidator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,15 +28,33 @@ public class StudentService {
     private static final Duration RECOVERY_WINDOW = Duration.ofMinutes(15);
 
     private final StudentRepository studentRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final SickNoteRepository sickNoteRepository;
+    private final HealthPointTransactionRepository healthPointTransactionRepository;
+    private final FoodVoucherRepository foodVoucherRepository;
     private final PasswordEncoder passwordEncoder;
     private final Map<String, RecoveryAttempt> recoveryAttempts =
             new ConcurrentHashMap<>();
 
+    public enum DeleteResult {
+        DELETED,
+        NOT_FOUND,
+        HAS_LINKED_RECORDS
+    }
+
     public StudentService(
             StudentRepository studentRepository,
+            AppointmentRepository appointmentRepository,
+            SickNoteRepository sickNoteRepository,
+            HealthPointTransactionRepository healthPointTransactionRepository,
+            FoodVoucherRepository foodVoucherRepository,
             PasswordEncoder passwordEncoder
     ) {
         this.studentRepository = studentRepository;
+        this.appointmentRepository = appointmentRepository;
+        this.sickNoteRepository = sickNoteRepository;
+        this.healthPointTransactionRepository = healthPointTransactionRepository;
+        this.foodVoucherRepository = foodVoucherRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -39,7 +62,10 @@ public class StudentService {
     public Student saveStudent(Student student) {
         if (
                 student == null ||
-                        isBlank(student.getStudentNumber())
+                        !StudentIdentityValidator.isMatchingIdentity(
+                                student.getEmail(),
+                                student.getStudentNumber()
+                        )
         ) {
             return null;
         }
@@ -109,9 +135,10 @@ public class StudentService {
     ) {
         if (
                 request == null ||
-                        !isValidStudentEmail(request.getEmail()) ||
-                        isBlank(request.getStudentNumber()) ||
-                        !request.getStudentNumber().trim().matches("\\d{8,12}") ||
+                        !StudentIdentityValidator.isMatchingIdentity(
+                                request.getEmail(),
+                                request.getStudentNumber()
+                        ) ||
                         !isValidPhoneNumber(request.getPhoneNumber()) ||
                         !isValidPhoneNumber(request.getEmergencyContactPhone()) ||
                         isBlank(request.getNewPassword()) ||
@@ -200,7 +227,28 @@ public class StudentService {
                         )
                         .orElse(null);
 
-        if (existingStudent == null) {
+        if (
+                existingStudent == null ||
+                        !StudentIdentityValidator.isMatchingIdentity(
+                                submittedStudent.getEmail(),
+                                existingStudent.getStudentNumber()
+                        )
+        ) {
+            return null;
+        }
+
+        Student emailOwner = studentRepository
+                .findByEmailIgnoreCase(
+                        normaliseEmail(submittedStudent.getEmail())
+                )
+                .orElse(null);
+
+        if (
+                emailOwner != null &&
+                        !emailOwner.getUserId().equals(
+                                existingStudent.getUserId()
+                        )
+        ) {
             return null;
         }
 
@@ -261,7 +309,11 @@ public class StudentService {
 
         if (
                 student == null ||
-                        !student.isActive()
+                        !student.isActive() ||
+                        !StudentIdentityValidator.isMatchingIdentity(
+                                request.getEmail(),
+                                student.getStudentNumber()
+                        )
         ) {
             return null;
         }
@@ -284,30 +336,33 @@ public class StudentService {
     }
 
     @Transactional
-    public boolean deleteStudent(Long id) {
+    public DeleteResult deleteStudent(Long id) {
         if (id == null) {
-            return false;
+            return DeleteResult.NOT_FOUND;
         }
 
-        Student student =
-                studentRepository
-                        .findById(id)
-                        .orElse(null);
+        Student student = studentRepository
+                .findById(id)
+                .orElse(null);
 
         if (student == null) {
-            return false;
+            return DeleteResult.NOT_FOUND;
         }
 
-        /*
-         * Soft delete:
-         * the student remains linked to existing
-         * appointment records but cannot log in.
-         */
-        student.deactivate();
+        boolean hasLinkedRecords =
+                appointmentRepository.existsByStudentUserId(id) ||
+                        sickNoteRepository.existsByStudentUserId(id) ||
+                        healthPointTransactionRepository.existsByStudentUserId(id) ||
+                        foodVoucherRepository.existsByStudentUserId(id);
 
-        studentRepository.save(student);
+        if (hasLinkedRecords) {
+            return DeleteResult.HAS_LINKED_RECORDS;
+        }
 
-        return true;
+        studentRepository.delete(student);
+        studentRepository.flush();
+
+        return DeleteResult.DELETED;
     }
 
     @Transactional
@@ -371,9 +426,7 @@ public class StudentService {
     }
 
     private boolean isValidStudentEmail(String email) {
-        return !isBlank(email)
-                && email.trim().toLowerCase()
-                .matches("^[^\\s@]+@mycput\\.ac\\.za$");
+        return StudentIdentityValidator.isValidStudentEmail(email);
     }
 
     private boolean isValidPhoneNumber(String phoneNumber) {

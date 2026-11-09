@@ -181,7 +181,11 @@ function AdminUserRecords({
                   disabled={workingItem === `${selected.endpoint}-${selected.record.userId}`}
                   onClick={() => onRemove(selected.endpoint, selected.record.userId, selected.name)}
                 >
-                  {workingItem === `${selected.endpoint}-${selected.record.userId}` ? 'Removing…' : 'Remove account'}
+                  {workingItem === `${selected.endpoint}-${selected.record.userId}`
+                    ? 'Removing…'
+                    : selected.category === 'STUDENT'
+                      ? 'Delete account'
+                      : 'Remove account'}
                 </button>
               )}
             </>

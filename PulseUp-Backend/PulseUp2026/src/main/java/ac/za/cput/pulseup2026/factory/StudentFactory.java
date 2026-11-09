@@ -2,6 +2,7 @@ package ac.za.cput.pulseup2026.factory;
 
 import ac.za.cput.pulseup2026.domain.Student;
 import ac.za.cput.pulseup2026.domain.YearOfStudy;
+import ac.za.cput.pulseup2026.util.StudentIdentityValidator;
 
 public final class StudentFactory {
 
@@ -22,7 +23,13 @@ public final class StudentFactory {
             String emergencyContactName,
             String emergencyContactPhone
     ) {
-        if (isBlank(email) || isBlank(passwordHash) || isBlank(firstName) ||
+        if (
+                !StudentIdentityValidator.isMatchingIdentity(
+                        email,
+                        studentNumber
+                ) ||
+                        isBlank(passwordHash) ||
+                        isBlank(firstName) ||
                 isBlank(lastName) || isBlank(phoneNumber) ||
                 isBlank(studentNumber) || isBlank(course) || isBlank(campus) ||
                 isBlank(residence) || yearOfStudy == null ||
