@@ -8,6 +8,7 @@ import {
   clearSession,
   getDashboardPath,
   getToken,
+  normalizeRole,
   saveStoredUser,
 } from '../../lib/utils/session';
 import '../../styles/pages/auth/LoginPage.css';
@@ -21,6 +22,15 @@ const INITIAL_RECOVERY = {
   newPassword: '',
   confirmPassword: '',
 };
+
+const ACCOUNT_TYPES = [
+  { value: 'STUDENT', label: 'Student' },
+  { value: 'STAFF', label: 'Staff' },
+  { value: 'ADMIN', label: 'Administrator' },
+];
+const ACCOUNT_TYPE_LABELS = Object.fromEntries(
+  ACCOUNT_TYPES.map(({ value, label }) => [value, label]),
+);
 
 const LockIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="3" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /><path d="M12 14v2" /></svg>;
 const MailIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" /><path d="m5 8 7 5 7-5" /></svg>;
@@ -42,6 +52,7 @@ function getLoginError(error) {
 function LoginPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState('login');
+  const [selectedRole, setSelectedRole] = useState('STUDENT');
   const [form, setForm] = useState(INITIAL_FORM);
   const [recovery, setRecovery] = useState(INITIAL_RECOVERY);
   const [message, setMessage] = useState('');
@@ -61,7 +72,15 @@ function LoginPage() {
     setMessage('');
   }
 
+  function selectRole(role) {
+    setSelectedRole(role);
+    setMessage('');
+    setMessageType('error');
+  }
+
   function showRecovery() {
+    if (selectedRole !== 'STUDENT') return;
+
     setRecovery((current) => ({ ...current, email: form.email }));
     setMode('recovery');
     setMessage('');
@@ -93,17 +112,34 @@ function LoginPage() {
         email: form.email.trim().toLowerCase(),
         password: form.password,
       });
-      const user = saveStoredUser(response.data);
-      if (!user || !getToken(user)) throw new Error('LOGIN_TOKEN_MISSING');
-      const dashboardPath = getDashboardPath(user.role);
-      if (dashboardPath === '/login') throw new Error('UNSUPPORTED_ROLE');
+      const authenticatedUser = response.data;
+      const authenticatedRole = normalizeRole(authenticatedUser?.role);
+
+      if (!authenticatedUser || !getToken(authenticatedUser)) {
+        throw new Error('LOGIN_TOKEN_MISSING');
+      }
+      if (!ACCOUNT_TYPE_LABELS[authenticatedRole]) {
+        throw new Error('UNSUPPORTED_ROLE');
+      }
+      if (authenticatedRole !== selectedRole) {
+        const roleMismatch = new Error('ROLE_MISMATCH');
+        roleMismatch.authenticatedRole = authenticatedRole;
+        throw roleMismatch;
+      }
+
+      saveStoredUser(authenticatedUser);
+      const dashboardPath = getDashboardPath(authenticatedRole);
       navigate(dashboardPath, { replace: true });
     } catch (error) {
       console.error('PulseUp login failed:', error.response?.status, error.response?.data || error.message);
       clearSession();
       if (error.message === 'LOGIN_TOKEN_MISSING') setMessage('The backend accepted the login but did not return an authentication token.');
       else if (error.message === 'UNSUPPORTED_ROLE') setMessage('The account has an unsupported role.');
-      else setMessage(getLoginError(error));
+      else if (error.message === 'ROLE_MISMATCH') {
+        const actualRole = ACCOUNT_TYPE_LABELS[error.authenticatedRole] || 'different';
+        const article = actualRole === 'Administrator' ? 'an' : 'a';
+        setMessage(`These credentials belong to ${article} ${actualRole} account. Select ${actualRole} to continue.`);
+      } else setMessage(getLoginError(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -185,9 +221,29 @@ function LoginPage() {
 
           {mode === 'login' ? (
             <form className="pulse-login-form" onSubmit={handleSubmit}>
+              <fieldset className="pulse-login-role-selector">
+                <legend>Sign in as</legend>
+                <div className="pulse-login-role-options">
+                  {ACCOUNT_TYPES.map(({ value, label }) => (
+                    <label className={selectedRole === value ? 'is-selected' : ''} key={value}>
+                      <input
+                        type="radio"
+                        name="accountType"
+                        value={value}
+                        checked={selectedRole === value}
+                        onChange={() => selectRole(value)}
+                        disabled={isSubmitting}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
               <label className="pulse-auth-field pulse-login-field"><span>Email address</span><div className="pulse-login-input-wrapper"><i><MailIcon /></i><input type="email" name="email" value={form.email} onChange={updateField} autoComplete="email" placeholder="name@example.com" disabled={isSubmitting} required autoFocus /></div></label>
               <label className="pulse-auth-field pulse-login-field"><span>Password</span><div className="pulse-login-input-wrapper"><i><LockIcon /></i><input type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={updateField} autoComplete="current-password" placeholder="Enter your password" disabled={isSubmitting} required /><button type="button" className="pulse-login-password-toggle" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((current) => !current)} disabled={isSubmitting}><EyeIcon visible={showPassword} /></button></div></label>
-              <button type="button" className="pulse-forgot-password" onClick={showRecovery} disabled={isSubmitting}>Forgot password?</button>
+              {selectedRole === 'STUDENT' ? (
+                <button type="button" className="pulse-forgot-password" onClick={showRecovery} disabled={isSubmitting}>Forgot password?</button>
+              ) : null}
               {message && <p className={`pulse-auth-message${messageType === 'success' ? ' is-success' : ''}`} role={messageType === 'success' ? 'status' : 'alert'}>{message}</p>}
               <button type="submit" className="pulse-auth-submit" disabled={isSubmitting}>{isSubmitting ? 'Signing in...' : 'Sign in'}</button>
             </form>
@@ -207,7 +263,16 @@ function LoginPage() {
             </form>
           )}
 
-          {mode === 'login' && <><div className="pulse-login-divider"><span>Don't have an account?</span></div><Link className="pulse-login-register" to="/register">Create a student account</Link></>}
+          {mode === 'login' && (
+            selectedRole === 'STUDENT' ? (
+              <>
+                <div className="pulse-login-divider"><span>Don't have an account?</span></div>
+                <Link className="pulse-login-register" to="/register">Create a student account</Link>
+              </>
+            ) : (
+              <p className="pulse-login-support">Use the account issued by your system administrator.</p>
+            )
+          )}
         </div>
       </section>
     </main>
