@@ -217,7 +217,7 @@ function StudentDashboard() {
   }, [refreshDashboardData, userRole, userToken]);
 
   const availableSlots = useMemo(
-    () => bookingSlots.filter((slot) => slot.available === true),
+    () => bookingSlots.filter((slot) => slot.bookable === true),
     [bookingSlots],
   );
   const activeAppointments = useMemo(
@@ -282,7 +282,7 @@ function StudentDashboard() {
   }
 
   function getRescheduleOptions(appointment) {
-    return allTimeSlots.filter((slot) => slot.available === true && slot.appointmentType === appointment.appointmentType && String(slot.slotId) !== String(appointment.slotId));
+    return allTimeSlots.filter((slot) => slot.bookable === true && slot.appointmentType === appointment.appointmentType && String(slot.slotId) !== String(appointment.slotId));
   }
 
   async function handleBooking(event) {
@@ -343,7 +343,7 @@ function StudentDashboard() {
         const refreshed = await refreshDashboardData();
         setMessage(
           refreshed
-            ? 'That time slot has just been booked or closed. Please choose another available slot.'
+            ? 'That time slot has just been booked, closed or expired. Please choose another available slot.'
             : 'That time slot is no longer available, and the latest slots could not be loaded. Refresh the page before choosing another slot.',
         );
       } else if (status === 400) {
@@ -436,7 +436,7 @@ function StudentDashboard() {
         const refreshed = await refreshDashboardData();
         setMessage(
           refreshed
-            ? 'That replacement slot has just been booked or closed. Please choose another available slot.'
+            ? 'That replacement slot has just been booked, closed or expired. Please choose another available slot.'
             : 'That replacement slot is no longer available, and the latest slots could not be loaded. Refresh the page before choosing another slot.',
         );
       } else if (responseWasUncertain) {

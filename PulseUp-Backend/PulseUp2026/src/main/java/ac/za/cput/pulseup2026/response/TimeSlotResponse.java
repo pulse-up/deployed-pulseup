@@ -2,6 +2,7 @@ package ac.za.cput.pulseup2026.response;
 
 import ac.za.cput.pulseup2026.domain.Staff;
 import ac.za.cput.pulseup2026.domain.TimeSlot;
+import ac.za.cput.pulseup2026.util.ClinicTime;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -16,7 +17,9 @@ public record TimeSlotResponse(
         String appointmentType,
         String roomNumber,
         int estimatedDurationMinutes,
-        boolean available
+        boolean available,
+        boolean bookable,
+        boolean expired
 ) {
     public static TimeSlotResponse from(TimeSlot slot) {
         if (slot == null) {
@@ -28,6 +31,11 @@ public record TimeSlotResponse(
                 ? null
                 : (staff.getFirstName() + " " + staff.getLastName()).trim();
 
+        boolean future = ClinicTime.isFutureSlot(
+                slot.getSlotDate(),
+                slot.getStartTime()
+        );
+
         return new TimeSlotResponse(
                 slot.getSlotId(),
                 staff == null ? null : staff.getUserId(),
@@ -38,7 +46,9 @@ public record TimeSlotResponse(
                 slot.getAppointmentType(),
                 slot.getRoomNumber(),
                 slot.getEstimatedDurationMinutes(),
-                slot.isAvailable()
+                slot.isAvailable(),
+                slot.isAvailable() && future,
+                !future
         );
     }
 }

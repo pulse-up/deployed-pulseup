@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -78,8 +79,11 @@ class AppointmentServiceTest {
                 .thenReturn(Optional.of(student));
         when(timeSlotRepository.findById(SLOT_ID))
                 .thenReturn(Optional.of(slot));
-        when(timeSlotRepository.reserveIfAvailable(SLOT_ID))
-                .thenReturn(1);
+        when(timeSlotRepository.reserveIfAvailable(
+                eq(SLOT_ID),
+                any(LocalDate.class),
+                any(LocalTime.class)
+        )).thenReturn(1);
         when(appointmentRepository.save(any(Appointment.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -102,7 +106,11 @@ class AppointmentServiceTest {
                 entityManager,
                 appointmentRepository
         );
-        saveOrder.verify(timeSlotRepository).reserveIfAvailable(SLOT_ID);
+        saveOrder.verify(timeSlotRepository).reserveIfAvailable(
+                eq(SLOT_ID),
+                any(LocalDate.class),
+                any(LocalTime.class)
+        );
         saveOrder.verify(entityManager).refresh(slot);
         saveOrder.verify(appointmentRepository).save(result);
         verifyNoInteractions(healthPointService);
@@ -122,8 +130,11 @@ class AppointmentServiceTest {
                 .thenReturn(Optional.of(student));
         when(timeSlotRepository.findById(SLOT_ID))
                 .thenReturn(Optional.of(slot));
-        when(timeSlotRepository.reserveIfAvailable(SLOT_ID))
-                .thenReturn(0);
+        when(timeSlotRepository.reserveIfAvailable(
+                eq(SLOT_ID),
+                any(LocalDate.class),
+                any(LocalTime.class)
+        )).thenReturn(0);
 
         assertThrows(
                 SlotUnavailableException.class,
@@ -137,7 +148,11 @@ class AppointmentServiceTest {
         assertTrue(slot.isAvailable());
         verify(studentRepository).findById(STUDENT_ID);
         verify(timeSlotRepository).findById(SLOT_ID);
-        verify(timeSlotRepository).reserveIfAvailable(SLOT_ID);
+        verify(timeSlotRepository).reserveIfAvailable(
+                eq(SLOT_ID),
+                any(LocalDate.class),
+                any(LocalTime.class)
+        );
         verify(timeSlotRepository, never()).save(any(TimeSlot.class));
         verifyNoInteractions(
                 entityManager,
@@ -254,7 +269,7 @@ class AppointmentServiceTest {
 
         return TimeSlot.builder()
                 .staff(staff)
-                .slotDate(LocalDate.of(2026, 10, 8))
+                .slotDate(LocalDate.now().plusDays(30))
                 .startTime(LocalTime.of(9, 0))
                 .endTime(LocalTime.of(9, 20))
                 .appointmentType("General Consultation")

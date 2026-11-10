@@ -596,12 +596,18 @@ function StaffDashboard() {
                     </span>
                     <span
                       className={
-                        slot.available
-                          ? 'slot-status available'
-                          : 'slot-status booked'
+                        slot.expired
+                          ? 'slot-status unavailable'
+                          : slot.bookable
+                            ? 'slot-status available'
+                            : 'slot-status booked'
                       }
                     >
-                      {slot.available ? 'Available' : 'Booked'}
+                      {slot.expired
+                        ? 'Expired'
+                        : slot.bookable
+                          ? 'Available'
+                          : 'Booked or closed'}
                     </span>
                   </div>
                 </article>
@@ -618,9 +624,12 @@ function StaffDashboard() {
     Boolean(identity.hasProfileImage),
     profileImageVersion,
   );
+  const bookableSlots = timeSlots.filter(
+    (slot) => slot.bookable === true,
+  );
   const notifications = staffNotifications(
     appointments,
-    timeSlots.filter((slot) => slot.available).length,
+    bookableSlots.length,
     pendingSickNotes,
   );
   const sidebarItems = [
@@ -702,9 +711,9 @@ function StaffDashboard() {
                   <p>
                     You have {pendingAppointments.length} booking
                     {pendingAppointments.length === 1 ? '' : 's'} awaiting review
-                    and {timeSlots.filter((slot) => slot.available).length} open
+                    and {bookableSlots.length} open
                     time slot
-                    {timeSlots.filter((slot) => slot.available).length === 1 ? '' : 's'}.
+                    {bookableSlots.length === 1 ? '' : 's'}.
                   </p>
                   <div className="staff-quick-actions">
                     <button type="button" onClick={() => setActiveSection('bookings')}>Manage bookings</button>

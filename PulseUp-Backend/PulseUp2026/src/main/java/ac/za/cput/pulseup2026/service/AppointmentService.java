@@ -9,11 +9,13 @@ import ac.za.cput.pulseup2026.factory.AppointmentFactory;
 import ac.za.cput.pulseup2026.repository.AppointmentRepository;
 import ac.za.cput.pulseup2026.repository.StudentRepository;
 import ac.za.cput.pulseup2026.repository.TimeSlotRepository;
+import ac.za.cput.pulseup2026.util.ClinicTime;
 import ac.za.cput.pulseup2026.response.AppointmentQueueResponse;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
@@ -104,7 +106,17 @@ public class AppointmentService {
             return null;
         }
 
-        if (timeSlot == null || !timeSlot.isAvailable()) {
+        ZonedDateTime clinicNow = ClinicTime.now();
+
+        if (
+                timeSlot == null ||
+                        !timeSlot.isAvailable() ||
+                        !ClinicTime.isFutureSlot(
+                                timeSlot.getSlotDate(),
+                                timeSlot.getStartTime(),
+                                clinicNow
+                        )
+        ) {
             throw new SlotUnavailableException();
         }
 
@@ -119,7 +131,14 @@ public class AppointmentService {
             return null;
         }
 
-        if (timeSlotRepository.reserveIfAvailable(slotId) != 1) {
+        ZonedDateTime reservationTime = ClinicTime.now();
+        if (
+                timeSlotRepository.reserveIfAvailable(
+                        slotId,
+                        reservationTime.toLocalDate(),
+                        reservationTime.toLocalTime()
+                ) != 1
+        ) {
             throw new SlotUnavailableException();
         }
 
@@ -379,7 +398,17 @@ public class AppointmentService {
             return null;
         }
 
-        if (newTimeSlot == null || !newTimeSlot.isAvailable()) {
+        ZonedDateTime clinicNow = ClinicTime.now();
+
+        if (
+                newTimeSlot == null ||
+                        !newTimeSlot.isAvailable() ||
+                        !ClinicTime.isFutureSlot(
+                                newTimeSlot.getSlotDate(),
+                                newTimeSlot.getStartTime(),
+                                clinicNow
+                        )
+        ) {
             throw new SlotUnavailableException();
         }
 
@@ -406,7 +435,14 @@ public class AppointmentService {
             return null;
         }
 
-        if (timeSlotRepository.reserveIfAvailable(newSlotId) != 1) {
+        ZonedDateTime reservationTime = ClinicTime.now();
+        if (
+                timeSlotRepository.reserveIfAvailable(
+                        newSlotId,
+                        reservationTime.toLocalDate(),
+                        reservationTime.toLocalTime()
+                ) != 1
+        ) {
             throw new SlotUnavailableException();
         }
 

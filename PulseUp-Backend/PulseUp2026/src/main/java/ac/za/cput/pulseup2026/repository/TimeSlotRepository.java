@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +51,17 @@ public interface TimeSlotRepository
                set slot.available = false
              where slot.slotId = :slotId
                and slot.available = true
+               and (
+                    slot.slotDate > :today
+                    or (
+                        slot.slotDate = :today
+                        and slot.startTime > :currentTime
+                    )
+               )
             """)
-    int reserveIfAvailable(@Param("slotId") Long slotId);
+    int reserveIfAvailable(
+            @Param("slotId") Long slotId,
+            @Param("today") LocalDate today,
+            @Param("currentTime") LocalTime currentTime
+    );
 }

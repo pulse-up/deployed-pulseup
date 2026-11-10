@@ -7,12 +7,12 @@ import ac.za.cput.pulseup2026.factory.TimeSlotFactory;
 import ac.za.cput.pulseup2026.repository.AppointmentRepository;
 import ac.za.cput.pulseup2026.repository.StaffRepository;
 import ac.za.cput.pulseup2026.repository.TimeSlotRepository;
+import ac.za.cput.pulseup2026.util.ClinicTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
@@ -20,9 +20,6 @@ import java.util.Set;
 @Service
 @Transactional
 public class TimeSlotService {
-
-    private static final ZoneId CAMPUS_ZONE =
-            ZoneId.of("Africa/Johannesburg");
 
     private static final Set<String>
             ACTIVE_RESERVATION_STATUSES = Set.of(
@@ -188,11 +185,17 @@ public class TimeSlotService {
 
         if (
                 available &&
-                        appointmentRepository
-                                .existsByTimeSlot_SlotIdAndStatusIn(
-                                        slotId,
-                                        ACTIVE_RESERVATION_STATUSES
-                                )
+                        (
+                                !ClinicTime.isFutureSlot(
+                                        slot.getSlotDate(),
+                                        slot.getStartTime()
+                                ) ||
+                                        appointmentRepository
+                                                .existsByTimeSlot_SlotIdAndStatusIn(
+                                                        slotId,
+                                                        ACTIVE_RESERVATION_STATUSES
+                                                )
+                        )
         ) {
             return null;
         }
@@ -229,22 +232,13 @@ public class TimeSlotService {
             LocalDate slotDate,
             LocalTime startTime
     ) {
-        if (slotDate == null || startTime == null) {
-            return false;
-        }
-
-        ZonedDateTime now = ZonedDateTime.now(CAMPUS_ZONE);
-        return slotDate.isAfter(now.toLocalDate()) ||
-                (
-                        slotDate.isEqual(now.toLocalDate()) &&
-                                startTime.isAfter(now.toLocalTime())
-                );
+        return ClinicTime.isFutureSlot(slotDate, startTime);
     }
 
     private List<TimeSlot> futureAvailable(
             List<TimeSlot> slots
     ) {
-        ZonedDateTime now = ZonedDateTime.now(CAMPUS_ZONE);
+        ZonedDateTime now = ClinicTime.now();
         LocalDate today = now.toLocalDate();
         LocalTime currentTime = now.toLocalTime();
 

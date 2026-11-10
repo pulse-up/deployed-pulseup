@@ -533,13 +533,12 @@ function AdminDashboard() {
         const openSlotsByStaff = {};
 
         timeSlots.forEach((slot) => {
-            const end = getSlotTime(slot, slot.endTime);
+            const start = getSlotTime(slot, slot.startTime);
 
             if (
-                !slot.available ||
-                !end ||
-                end < now ||
-                !isSameDay(end, now)
+                !slot.bookable ||
+                !start ||
+                !isSameDay(start, now)
             ) {
                 return;
             }
@@ -964,7 +963,8 @@ function AdminDashboard() {
                 ),
         );
         const getState = (slot) => {
-            if (slot.available) return "AVAILABLE";
+            if (slot.expired) return "EXPIRED";
+            if (slot.bookable) return "AVAILABLE";
             return bookedSlotIds.has(String(slot.slotId))
                 ? "BOOKED"
                 : "CLOSED";
@@ -990,11 +990,11 @@ function AdminDashboard() {
                 : null;
             let periodMatches = slotPeriodFilter === "ALL";
             if (date && !Number.isNaN(date.getTime())) {
-                if (slotPeriodFilter === "UPCOMING") periodMatches = date >= today;
-                if (slotPeriodFilter === "NEXT_7") periodMatches = date >= today && date <= plusDays(7);
-                if (slotPeriodFilter === "NEXT_30") periodMatches = date >= today && date <= plusDays(30);
-                if (slotPeriodFilter === "RECENT_7") periodMatches = date >= minusDays(7) && date <= today;
-                if (slotPeriodFilter === "PAST") periodMatches = date < today;
+                if (slotPeriodFilter === "UPCOMING") periodMatches = !slot.expired;
+                if (slotPeriodFilter === "NEXT_7") periodMatches = !slot.expired && date <= plusDays(7);
+                if (slotPeriodFilter === "NEXT_30") periodMatches = !slot.expired && date <= plusDays(30);
+                if (slotPeriodFilter === "RECENT_7") periodMatches = slot.expired && date >= minusDays(7);
+                if (slotPeriodFilter === "PAST") periodMatches = slot.expired;
             }
             return stateMatches && periodMatches;
         });
@@ -1029,6 +1029,7 @@ function AdminDashboard() {
                                 <option value="AVAILABLE">Available</option>
                                 <option value="BOOKED">Booked</option>
                                 <option value="CLOSED">Closed</option>
+                                <option value="EXPIRED">Expired</option>
                             </select>
                         </label>
                         <label>
@@ -1060,7 +1061,7 @@ function AdminDashboard() {
                                         const isBooked = bookedSlotIds.has(String(slot.slotId));
                                         const state = getState(slot);
                                         const stateClass = state === "AVAILABLE" ? "available" : state === "BOOKED" ? "booked" : "unavailable";
-                                        const stateLabel = state === "AVAILABLE" ? "Available" : state === "BOOKED" ? "Booked" : "Closed";
+                                        const stateLabel = state === "AVAILABLE" ? "Available" : state === "BOOKED" ? "Booked" : state === "EXPIRED" ? "Expired" : "Closed";
 
                                         return (
                                             <article className="admin-record-card admin-slot-card" key={slot.slotId}>
@@ -1074,9 +1075,11 @@ function AdminDashboard() {
 
                                                 {!isBooked && (
                                                     <div className="admin-card-actions">
-                                                        <button type="button" className="primary-button" disabled={workingItem === itemKey} onClick={() => handleSlotAvailability(slot.slotId, !slot.available)}>
-                                                            {slot.available ? "Close slot" : "Open slot"}
-                                                        </button>
+                                                        {!slot.expired && (
+                                                            <button type="button" className="primary-button" disabled={workingItem === itemKey} onClick={() => handleSlotAvailability(slot.slotId, !slot.available)}>
+                                                                {slot.available ? "Close slot" : "Open slot"}
+                                                            </button>
+                                                        )}
                                                         {slot.available && (
                                                             <button type="button" className="danger-button" disabled={workingItem === itemKey} onClick={() => handleDeleteSlot(slot.slotId)}>Delete</button>
                                                         )}
